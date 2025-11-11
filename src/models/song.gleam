@@ -1,4 +1,3 @@
-import decoders
 import gleam/dict
 import gleam/int
 import gleam/json.{type Json}
@@ -8,6 +7,7 @@ import gleam/order
 import gleam/pair
 import gleam/result
 import gleam/string
+import models/distro
 import models/payment.{type Payment}
 import tempo/date
 import utils/fuzz
@@ -27,17 +27,32 @@ pub type Song {
   )
 }
 
+fn encode_growth(payments) {
+  let growth_info = payment.earnings_by_date(payments)
+  growth_info
+  |> list.map(fn(x) {
+    let #(date, total) = x
+    json.object([
+      #("date", date |> date.to_string |> json.string),
+      #("earnings", total |> json.float),
+    ])
+  })
+}
+
+fn encode_distro(payments) {
+  let distro_data = payment.converge_by_distro(payments)
+  distro_data
+  |> list.map(fn(x) {
+    json.object([
+      #("distro", x.distro |> distro.encoder),
+      #("earnings", x.earnings |> json.float),
+    ])
+  })
+}
+
 pub fn encoder(s: Song) -> Json {
-  let growth_info = payment.earnings_by_date(s.payments)
-  let growth_data =
-    growth_info
-    |> list.map(fn(x) {
-      let #(date, total) = x
-      json.object([
-        #("date", date |> date.to_string |> json.string),
-        #("earnings", total |> json.float),
-      ])
-    })
+  let growth_data = encode_growth(s.payments)
+  let distro_data = encode_distro(s.payments)
 
   json.object([
     #("title", s.title |> json.string),
@@ -47,6 +62,7 @@ pub fn encoder(s: Song) -> Json {
     #("iswc", json.nullable(s.iswc, json.string)),
     #("upc", json.nullable(s.upc, json.int)),
     #("growth", json.array(growth_data, fn(x) { x })),
+    #("distros", json.array(distro_data, fn(x) { x })),
     #(
       "total",
       json.float(s.payments |> list.fold(0.0, fn(acc, x) { x.earnings +. acc })),
@@ -117,7 +133,9 @@ fn grouped_to_song(title, vals: List(Payment)) {
       list.filter_map(vals, fn(x) { x.artist |> option.to_result(Nil) }),
     )
     |> option.from_result
-  let vals = vals |> payment.converge_by_distro
+
+  // TODO: see how removing this impacts performance
+  // let vals = vals |> payment.converge_by_distro
 
   let #(iswc, isrc, upc) =
     vals
