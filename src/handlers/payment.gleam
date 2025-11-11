@@ -7,7 +7,6 @@ import gleam/result
 import models/payment
 import services/payment_service
 import sqlight
-import utils/errors
 import wisp
 
 pub fn read_csv(req: wisp.Request) {
@@ -46,7 +45,7 @@ pub fn enrich(_req, conn) {
 fn enrich_priv(conn: sqlight.Connection, titles: List(String)) {
   list.try_each(titles, fn(title) {
     use entries <- result.try(
-      payment_service.select_all(conn, title) |> errors.result_to_nil,
+      payment_service.select_all(conn, title) |> result.map_error(fn(_) { Nil }),
     )
     use entry <- result.try(payment.converge_list(entries))
 

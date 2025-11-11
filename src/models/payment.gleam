@@ -14,7 +14,6 @@ import models/header
 import sqlight
 import tempo
 import tempo/date
-import utils/errors
 
 pub type Payment {
   Payment(
@@ -167,9 +166,9 @@ pub fn decoder_dict(data, distro, header: header.Header) {
   let date =
     data
     |> decode_one_field(header.dates, fn(x) {
-      date.parse_any(x) |> errors.result_to_nil
+      date.parse_any(x) |> result.map_error(fn(_) { Nil })
     })
-    |> errors.result_as_option
+    |> option.from_result
 
   Ok(Payment(
     id:,
@@ -189,11 +188,12 @@ pub fn earnings_by_date(vals: List(Payment)) {
   |> list.fold(dict.new(), fn(acc, x) {
     case x.date {
       Some(key) -> {
-        let payments = case acc |> dict.get(key) {
+        let normalized_date = date.first_of_month(key)
+        let payments = case acc |> dict.get(normalized_date) {
           Ok(s) -> s +. x.earnings
           Error(_) -> x.earnings
         }
-        acc |> dict.insert(key, payments)
+        acc |> dict.insert(normalized_date, payments)
       }
       None -> acc
     }

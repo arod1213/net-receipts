@@ -5,7 +5,6 @@ import gleam/list
 import gleam/order
 import gleam/result
 import gleam/string
-import utils/cmp
 
 pub fn most_common_entry(vals: List(a)) {
   vals
@@ -84,7 +83,7 @@ fn loop(s1, s2, idx, acc) -> Int {
 }
 
 pub fn fuzzy_percent(s1, s2) -> Float {
-  let max_val = cmp.max(string.length(s1), string.length(s2)) |> int.to_float
+  let max_val = int.max(string.length(s1), string.length(s2)) |> int.to_float
   let distance = levenshtein(s1, s2) |> int.to_float
   distance /. max_val
 }
@@ -120,7 +119,7 @@ fn levenshtein_matrix(
       let insert = 1 + levenshtein_matrix(s1, s2, i, j + 1, l1, l2)
       let substitute = cost + levenshtein_matrix(s1, s2, i + 1, j + 1, l1, l2)
 
-      cmp.min(delete, cmp.min(insert, substitute))
+      int.min(delete, int.min(insert, substitute))
     }
   }
 }
