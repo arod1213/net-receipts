@@ -5,7 +5,7 @@ pub fn headers() {
   Header(
     id: ["Statement Recipient ID"],
     earnings: ["Dollars", "$ Amount"],
-    titles: ["Work Primary Title", "Track Name", "Work Title"],
+    titles: ["Track Name", "Work Title"],
     artists: ["Artist"],
     dates: ["Distribution Date"],
     isrcs: global_isrcs,
