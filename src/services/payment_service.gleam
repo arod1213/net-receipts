@@ -6,8 +6,8 @@ import gleam/order
 import gleam/result
 import gleam/string
 import gsv
-import models/distro
 import models/payment.{type Payment}
+import models/payor
 import simplifile
 import sqlight
 
@@ -68,12 +68,12 @@ pub fn csv_decoder(data, separator: String) {
     |> result.map_error(fn(_) { MissingHeader }),
   )
 
-  let distro = distro.distro_from_dict(header) |> option.unwrap(distro.Unknown)
-  let headers = distro.headers_from_distro(distro)
+  let payor = payor.payor_from_dict(header) |> option.unwrap(payor.Unknown)
+  let headers = payor.headers_from_payor(payor)
 
   Ok(
     dicts
-    |> list.filter_map(fn(dict) { payment.decoder_dict(dict, distro, headers) }),
+    |> list.filter_map(fn(dict) { payment.decoder_dict(dict, payor, headers) }),
   )
 }
 

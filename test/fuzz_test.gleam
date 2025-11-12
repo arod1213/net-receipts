@@ -1,13 +1,13 @@
 import gleam/dict
 import gleam/option.{Some}
-import models/distro
+import models/payor
 import utils/fuzz
 
 pub fn distro_from_dict_test() {
   let a =
     [#("Statement Recipient Name", 0), #("Work Title", 0), #("Party Name", 0)]
     |> dict.from_list
-  assert distro.distro_from_dict(a) == Some(distro.Ascap)
+  assert payor.payor_from_dict(a) == Some(payor.Ascap)
 }
 
 pub fn mci_test() {

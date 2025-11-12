@@ -13,7 +13,7 @@ import providers/songtrust
 import providers/soundexchange
 import providers/vydia
 
-pub type Distributor {
+pub type Payor {
   Vydia
   Ascap
   BMI
@@ -22,6 +22,32 @@ pub type Distributor {
   SoundExchange
   MLC
   Unknown
+}
+
+pub type IncomeType {
+  Master
+  Publishing
+  Performance
+  Mechanical
+}
+
+pub fn income_type(payor) {
+  case payor {
+    Vydia | Distrokid | SoundExchange -> Some(Master)
+    Ascap | BMI -> Some(Performance)
+    Songtrust -> Some(Publishing)
+    MLC -> Some(Mechanical)
+    _ -> None
+  }
+}
+
+fn income_type_to_string(i) {
+  case i {
+    Master -> "Master"
+    Publishing -> "Publishing"
+    Mechanical -> "Mechanical"
+    Performance -> "Performance"
+  }
 }
 
 pub fn decoder() {
@@ -40,7 +66,7 @@ pub fn decoder() {
   })
 }
 
-pub fn to_string(d: Distributor) -> String {
+pub fn to_string(d: Payor) -> String {
   case d {
     Distrokid -> "Distrokid"
     Ascap -> "ASCAP"
@@ -53,17 +79,26 @@ pub fn to_string(d: Distributor) -> String {
   }
 }
 
-pub fn encoder(d: Distributor) -> Json {
-  d |> to_string |> json.string
+pub fn encoder(d: Payor) -> Json {
+  json.object([
+    #("name", d |> to_string |> json.string),
+    #(
+      "type",
+      json.nullable(
+        d |> income_type |> option.map(income_type_to_string),
+        fn(x) { x |> json.string },
+      ),
+    ),
+  ])
 }
 
-pub fn distro_from_data(data: String, sep: String) -> option.Option(Distributor) {
+pub fn payor_from_data(data: String, sep: String) -> option.Option(Payor) {
   let dicts = data |> gsv.to_dicts(sep) |> result.unwrap([])
   let head = dicts |> list.first |> result.unwrap(dict.new())
-  head |> distro_from_dict
+  head |> payor_from_dict
 }
 
-pub fn distro_from_dict(dict) {
+pub fn payor_from_dict(dict) {
   let ascap = #(Ascap, ["Statement Recipient Name", "Party Name"])
   let vydia = #(Vydia, ["Balance Adjustment ID"])
   let distrokid = #(Distrokid, ["Team Percentage", "Song/Album"])
@@ -72,7 +107,7 @@ pub fn distro_from_dict(dict) {
   let mlc = #(MLC, ["Member MLC Number"])
   let bmi = #(BMI, ["Royalty Amt"])
 
-  check_distros(dict, [
+  check_payors(dict, [
     ascap,
     vydia,
     distrokid,
@@ -84,15 +119,15 @@ pub fn distro_from_dict(dict) {
 }
 
 // TODO: check that this works with multiple headers
-fn check_distros(dict, distros: List(#(Distributor, List(String)))) {
+fn check_payors(dict, payors: List(#(Payor, List(String)))) {
   case
-    distros
+    payors
     |> list.find(fn(l) {
       let #(_, headers) = l
       dict |> dict_contains(headers)
     })
   {
-    Ok(#(distro, _)) -> Some(distro)
+    Ok(#(payor, _)) -> Some(payor)
     Error(_) -> None
   }
 }
@@ -109,8 +144,8 @@ fn dict_contains(d, headers) {
   }
 }
 
-pub fn headers_from_distro(distro) {
-  case distro {
+pub fn headers_from_payor(payor) {
+  case payor {
     Ascap -> ascap.headers()
     Vydia -> vydia.headers()
     Distrokid -> distrokid.headers()

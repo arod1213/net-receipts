@@ -10,8 +10,8 @@ import gleam/option.{type Option, None, Some}
 import gleam/order
 import gleam/result
 import gleam/string
-import models/distro.{type Distributor}
 import models/header
+import models/payor.{type Payor}
 import sqlight
 import tempo
 import tempo/date
@@ -20,7 +20,7 @@ pub type Payment {
   Payment(
     id: String,
     earnings: Float,
-    distro: Distributor,
+    payor: Payor,
     artist: Option(String),
     title: String,
     isrc: Option(String),
@@ -33,13 +33,13 @@ pub type Payment {
 pub fn insert(conn: sqlight.Connection, p: Payment) {
   let sql =
     "insert into payments 
-    (unique_id, earnings, distro, artist, title, isrc, upc, date)
+    (unique_id, earnings, payor, artist, title, isrc, upc, date)
     values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
   "
   let args = [
     sqlight.text(p.id),
     sqlight.float(p.earnings),
-    sqlight.text(p.distro |> distro.to_string),
+    sqlight.text(p.payor |> payor.to_string),
     sqlight.nullable(sqlight.text, p.artist),
     sqlight.text(p.title),
     sqlight.nullable(sqlight.text, p.isrc),
@@ -59,7 +59,7 @@ pub fn decode_sql() -> decode.Decoder(Payment) {
   use title <- decode.field(3, decode.string)
   use artist <- decode.field(4, decode.optional(decode.string))
   use earnings <- decode.field(5, float_decoder())
-  use distro <- decode.field(6, distro.decoder())
+  use payor <- decode.field(6, payor.decoder())
   use isrc <- decode.field(7, decode.optional(decode.string))
   use upc <- decode.field(8, decode.optional(decode.int))
   use iswc <- decode.field(9, decode.optional(decode.string))
@@ -72,7 +72,7 @@ pub fn decode_sql() -> decode.Decoder(Payment) {
     artist:,
     earnings:,
     title:,
-    distro:,
+    payor:,
     date: None,
   ))
 }
@@ -82,7 +82,7 @@ pub fn decoder() -> decode.Decoder(Payment) {
   use iswc <- decode.field("iswc", decode.optional(decode.string))
   use id <- decode.field("unique_id", decode.string)
   use date <- decode.field("date", decoders.date_decoder())
-  use distro <- decode.field("distro", distro.decoder())
+  use payor <- decode.field("payor", payor.decoder())
   use upc <- decode.field("upc", decode.optional(decode.int))
 
   use title <- decode.field("title", decode.string)
@@ -97,7 +97,7 @@ pub fn decoder() -> decode.Decoder(Payment) {
     artist:,
     earnings:,
     title:,
-    distro:,
+    payor:,
     date:,
   ))
 }
@@ -107,7 +107,7 @@ pub fn encoder(p: Payment) -> Json {
     #("isrc", json.nullable(p.isrc, json.string)),
     #("iswc", json.nullable(p.iswc, json.string)),
     #("date", json.nullable(p.date, decoders.date_to_json)),
-    #("distro", p.distro |> distro.encoder),
+    #("payor", p.payor |> payor.encoder),
     #("upc", json.nullable(p.upc, json.int)),
     #("title", json.string(p.title)),
     #("artist", json.nullable(p.artist, json.string)),
@@ -115,7 +115,7 @@ pub fn encoder(p: Payment) -> Json {
   ])
 }
 
-pub fn decoder_dict(data, distro, header: header.Header) {
+pub fn decoder_dict(data, payor, header: header.Header) {
   let id =
     data
     |> decode_one_field(header.id, fn(x) { Ok(x) })
@@ -149,7 +149,7 @@ pub fn decoder_dict(data, distro, header: header.Header) {
   )
 
   // TODO: Check description to check if entry is a withdrawal
-  use <- bool.guard(earnings <. 1.0, Error(decoders.Withdrawal))
+  use <- bool.guard(earnings <. -1.0, Error(decoders.Withdrawal))
 
   let artist =
     data
@@ -166,7 +166,7 @@ pub fn decoder_dict(data, distro, header: header.Header) {
     |> decode_one_field(header.titles, fn(x) { Ok(x |> string.trim) })
     |> result.unwrap("N/A")
 
-  // TODO: implement custom decoders based on distro
+  // TODO: implement custom decoders based on payor
   let date =
     data
     |> decode_one_field(header.dates, fn(x) {
@@ -174,17 +174,7 @@ pub fn decoder_dict(data, distro, header: header.Header) {
     })
     |> option.from_result
 
-  Ok(Payment(
-    id:,
-    iswc:,
-    isrc:,
-    upc:,
-    artist:,
-    earnings:,
-    title:,
-    distro:,
-    date:,
-  ))
+  Ok(Payment(id:, iswc:, isrc:, upc:, artist:, earnings:, title:, payor:, date:))
 }
 
 pub fn earnings_by_date(vals: List(Payment)) {
@@ -211,9 +201,9 @@ pub fn earnings_by_date(vals: List(Payment)) {
 }
 
 // payments from same song -> converge by distributor
-pub fn converge_by_distro(vals: List(Payment)) -> List(Payment) {
+pub fn converge_by_payor(vals: List(Payment)) -> List(Payment) {
   list.fold(vals, dict.new(), fn(acc, x) {
-    let key = x.distro
+    let key = x.payor
     let payment = case acc |> dict.get(key) {
       Ok(s) -> converge(s, x)
       Error(_) -> x
@@ -249,12 +239,12 @@ fn converge(a: Payment, b: Payment) {
     a, _ -> a
   }
 
-  let distro = case a.distro {
-    distro.Unknown -> b.distro
-    _ -> a.distro
+  let payor = case a.payor {
+    payor.Unknown -> b.payor
+    _ -> a.payor
   }
 
-  Payment(id:, iswc:, isrc:, upc:, artist:, title:, earnings:, distro:, date:)
+  Payment(id:, iswc:, isrc:, upc:, artist:, title:, earnings:, payor:, date:)
 }
 
 pub fn total(payments: List(Payment)) {

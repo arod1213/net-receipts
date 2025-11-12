@@ -7,10 +7,8 @@ import gleam/order
 import gleam/pair
 import gleam/result
 import gleam/string
-import models/distro
+import models/overview
 import models/payment.{type Payment}
-import tempo
-import tempo/date
 import utils/fuzz
 
 pub type Song {
@@ -24,30 +22,11 @@ pub type Song {
   )
 }
 
-pub fn encode_growth(growth_info: List(#(tempo.Date, Float))) {
-  growth_info
-  |> list.map(fn(x) {
-    let #(date, total) = x
-    json.object([
-      #("date", date |> date.to_string |> json.string),
-      #("earnings", total |> json.float),
-    ])
-  })
-}
-
-fn encode_distro(payments: List(Payment)) {
-  payments
-  |> list.map(fn(x) {
-    json.object([
-      #("distro", x.distro |> distro.encoder),
-      #("earnings", x.earnings |> json.float),
-    ])
-  })
-}
-
 pub fn encoder(s: Song) -> Json {
-  let growth_data = encode_growth(s.payments |> payment.earnings_by_date)
-  let distro_data = encode_distro(s.payments |> payment.converge_by_distro)
+  let growth_data =
+    overview.encode_from_growth(s.payments |> payment.earnings_by_date)
+  let payor_data =
+    overview.encode_from_payments(s.payments |> payment.converge_by_payor)
 
   json.object([
     #("title", s.title |> json.string),
@@ -57,7 +36,7 @@ pub fn encoder(s: Song) -> Json {
     #("iswc", json.nullable(s.iswc, json.string)),
     #("upc", json.nullable(s.upc, json.int)),
     #("growth", json.array(growth_data, fn(x) { x })),
-    #("distros", json.array(distro_data, fn(x) { x })),
+    #("payors", json.array(payor_data, fn(x) { x })),
     #(
       "total",
       json.float(s.payments |> list.fold(0.0, fn(acc, x) { x.earnings +. acc })),

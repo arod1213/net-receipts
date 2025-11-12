@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS payments (
   title TEXT NOT NULL,
   artist TEXT,
   earnings REAL NOT NULL,
-  distro TEXT NOT NULL,
+  payor TEXT NOT NULL,
   isrc TEXT,
   upc INTEGER,
   UNIQUE (unique_id, earnings, distro, title)
