@@ -10,8 +10,11 @@ pub fn headers() {
     isrcs: global_isrcs,
     iswcs: global_iswcs,
     upcs: global_upcs,
+    territory: global_territory,
   )
 }
+
+pub const global_territory = ["Territory"]
 
 pub const global_isrcs = ["ISRC", "isrc"]
 

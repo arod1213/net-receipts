@@ -3,8 +3,6 @@ import gleam/list
 import gleam/option.{None}
 import gleam/result
 import gleam/uri
-import models/overview
-import models/payment
 import models/song
 import services/payment_service
 import utils/fuzz
@@ -25,10 +23,6 @@ pub fn read_csv(req: wisp.Request) {
     payments
     |> song.songs_from_payments
     |> song.sort_by_earnings
-
-  let growth =
-    payments
-    |> payment.earnings_by_date
 
   let overview =
     song.Song(

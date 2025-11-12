@@ -43,6 +43,10 @@ pub type ReadError {
   FileTypeError
 }
 
+// fn read_file(path: String) -> Result(String, Nil) {
+
+// }
+
 pub fn file_to_payments(path: String) -> Result(List(Payment), ReadError) {
   use data <- result.try(
     simplifile.read(from: path) |> result.map_error(fn(e) { e |> FileError }),

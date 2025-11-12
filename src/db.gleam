@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS payments (
   payor TEXT NOT NULL,
   isrc TEXT,
   upc INTEGER,
+  territory TEXT,
   UNIQUE (unique_id, earnings, distro, title)
 );
   "

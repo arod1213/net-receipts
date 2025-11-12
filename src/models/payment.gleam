@@ -27,6 +27,7 @@ pub type Payment {
     iswc: Option(String),
     upc: Option(Int),
     date: Option(tempo.Date),
+    territory: Option(String),
   )
 }
 
@@ -63,6 +64,7 @@ pub fn decode_sql() -> decode.Decoder(Payment) {
   use isrc <- decode.field(7, decode.optional(decode.string))
   use upc <- decode.field(8, decode.optional(decode.int))
   use iswc <- decode.field(9, decode.optional(decode.string))
+  use territory <- decode.field(10, decode.optional(decode.string))
 
   decode.success(Payment(
     id:,
@@ -73,6 +75,7 @@ pub fn decode_sql() -> decode.Decoder(Payment) {
     earnings:,
     title:,
     payor:,
+    territory:,
     date: None,
   ))
 }
@@ -87,6 +90,7 @@ pub fn decoder() -> decode.Decoder(Payment) {
 
   use title <- decode.field("title", decode.string)
   use artist <- decode.field("artist", decode.optional(decode.string))
+  use territory <- decode.field("territory", decode.optional(decode.string))
   use earnings <- decode.field("earnings", float_decoder())
 
   decode.success(Payment(
@@ -98,6 +102,7 @@ pub fn decoder() -> decode.Decoder(Payment) {
     earnings:,
     title:,
     payor:,
+    territory:,
     date:,
   ))
 }
@@ -109,6 +114,7 @@ pub fn encoder(p: Payment) -> Json {
     #("date", json.nullable(p.date, decoders.date_to_json)),
     #("payor", p.payor |> payor.encoder),
     #("upc", json.nullable(p.upc, json.int)),
+    #("territory", json.nullable(p.territory, json.string)),
     #("title", json.string(p.title)),
     #("artist", json.nullable(p.artist, json.string)),
     #("earnings", json.float(p.earnings)),
@@ -166,6 +172,10 @@ pub fn decoder_dict(data, payor, header: header.Header) {
     |> decode_one_field(header.titles, fn(x) { Ok(x |> string.trim) })
     |> result.unwrap("N/A")
 
+  let territory =
+    data
+    |> decode_one_field(header.territory, fn(x) { Ok(x |> string.trim) })
+    |> option.from_result
   // TODO: implement custom decoders based on payor
   let date =
     data
@@ -174,7 +184,18 @@ pub fn decoder_dict(data, payor, header: header.Header) {
     })
     |> option.from_result
 
-  Ok(Payment(id:, iswc:, isrc:, upc:, artist:, earnings:, title:, payor:, date:))
+  Ok(Payment(
+    id:,
+    iswc:,
+    isrc:,
+    upc:,
+    artist:,
+    earnings:,
+    title:,
+    payor:,
+    territory:,
+    date:,
+  ))
 }
 
 pub fn earnings_by_date(vals: List(Payment)) {
@@ -221,6 +242,7 @@ pub fn converge_list(vals: List(Payment)) {
 fn converge(a: Payment, b: Payment) {
   let id = a.id
   let title = a.title
+  let territory = a.territory
   let earnings = a.earnings +. b.earnings
   let isrc = option.or(a.isrc, b.isrc)
   let iswc = option.or(a.iswc, b.iswc)
@@ -244,7 +266,18 @@ fn converge(a: Payment, b: Payment) {
     _ -> a.payor
   }
 
-  Payment(id:, iswc:, isrc:, upc:, artist:, title:, earnings:, payor:, date:)
+  Payment(
+    id:,
+    iswc:,
+    isrc:,
+    upc:,
+    artist:,
+    title:,
+    earnings:,
+    payor:,
+    date:,
+    territory:,
+  )
 }
 
 pub fn total(payments: List(Payment)) {

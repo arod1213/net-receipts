@@ -8,5 +8,6 @@ pub type Header {
     upcs: List(String),
     isrcs: List(String),
     iswcs: List(String),
+    territory: List(String),
   )
 }
