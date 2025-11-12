@@ -24,6 +24,7 @@ pub fn read_csv(req: wisp.Request) {
     |> song.songs_from_payments
     |> song.sort_by_earnings
 
+  // TODO: maybe just pass in payments object here
   let growth =
     songs
     |> list.flat_map(fn(x) { x.payments })

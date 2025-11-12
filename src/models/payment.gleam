@@ -1,5 +1,6 @@
 import db
 import decoders.{decode_one_field, float_decoder}
+import gleam/bool
 import gleam/dict
 import gleam/dynamic/decode
 import gleam/int
@@ -146,6 +147,14 @@ pub fn decoder_dict(data, distro, header: header.Header) {
   use earnings <- result.try(
     data |> decode_one_field(header.earnings, decoders.parse_clean_float),
   )
+
+  // TODO: Check description to check if entry is a withdrawal
+  use <- bool.guard(earnings <. 1.0, Error(decoders.Withdrawal))
+
+  case earnings <. -5.0 {
+    True -> echo data
+    _ -> data
+  }
 
   let artist =
     data

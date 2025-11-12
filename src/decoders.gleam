@@ -43,6 +43,7 @@ pub fn float_decoder() {
 }
 
 pub type CSVError(a) {
+  Withdrawal
   NotFound
   DecodeError(a)
 }
