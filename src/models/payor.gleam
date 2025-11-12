@@ -9,6 +9,7 @@ import providers/ascap
 import providers/distrokid
 import providers/globals
 import providers/mlc
+import providers/onerpm
 import providers/songtrust
 import providers/soundexchange
 import providers/vydia
@@ -21,6 +22,7 @@ pub type Payor {
   Distrokid
   SoundExchange
   MLC
+  OneRPM
   Unknown
 }
 
@@ -33,7 +35,7 @@ pub type IncomeType {
 
 pub fn income_type(payor) {
   case payor {
-    Vydia | Distrokid | SoundExchange -> Some(Master)
+    Vydia | Distrokid | SoundExchange | OneRPM -> Some(Master)
     Ascap | BMI -> Some(Performance)
     Songtrust -> Some(Publishing)
     MLC -> Some(Mechanical)
@@ -54,6 +56,7 @@ pub fn decoder() {
   decode.then(decode.string, fn(a) {
     case a {
       "Vydia" -> decode.success(Vydia)
+      "OneRPM" -> decode.success(OneRPM)
       "Distrokid" -> decode.success(Distrokid)
       "BMI" -> decode.success(BMI)
       "Songtrust" -> decode.success(Songtrust)
@@ -68,6 +71,7 @@ pub fn decoder() {
 
 pub fn to_string(d: Payor) -> String {
   case d {
+    OneRPM -> "OneRPM"
     Distrokid -> "Distrokid"
     Ascap -> "ASCAP"
     Vydia -> "Vydia"
@@ -105,6 +109,10 @@ pub fn payor_from_dict(dict) {
   let songtrust = #(Songtrust, ["royalty_type", "amount_received"])
   let sound_exchange = #(SoundExchange, ["Royalty Item SXID"])
   let mlc = #(MLC, ["Member MLC Number"])
+
+  // TODO: double check this
+  let onerpm = #(OneRPM, ["Album/Channel", "Source Account"])
+
   let bmi = #(BMI, ["Royalty Amt"])
 
   check_payors(dict, [
@@ -114,6 +122,7 @@ pub fn payor_from_dict(dict) {
     songtrust,
     sound_exchange,
     mlc,
+    onerpm,
     bmi,
   ])
 }
@@ -152,6 +161,7 @@ pub fn headers_from_payor(payor) {
     SoundExchange -> soundexchange.headers()
     Songtrust -> songtrust.headers()
     MLC -> mlc.headers()
+    OneRPM -> onerpm.headers()
     BMI -> panic as "not implemented"
     _ -> globals.headers()
   }
