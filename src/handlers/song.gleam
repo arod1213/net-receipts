@@ -2,6 +2,7 @@ import gleam/json
 import gleam/list
 import gleam/result
 import gleam/uri
+import models/payment
 import models/song
 import services/payment_service
 import utils/fuzz
@@ -23,11 +24,19 @@ pub fn read_csv(req: wisp.Request) {
     |> song.songs_from_payments
     |> song.sort_by_earnings
 
-  let text =
-    json.array(songs, fn(s) { s |> song.encoder })
+  let growth =
+    songs
+    |> list.flat_map(fn(x) { x.payments })
+    |> payment.earnings_by_date
+
+  let json_res =
+    json.object([
+      #("songs", json.array(songs, fn(s) { s |> song.encoder })),
+      #("growth", json.array(growth |> song.encode_growth, fn(x) { x })),
+    ])
     |> json.to_string
 
-  wisp.json_response(text, 200)
+  wisp.json_response(json_res, 200)
   // case songs |> list.length {
   //   0 -> wisp.json_response("{'error': 'unsupported data type'}", 401)
   //   _ -> {

@@ -9,6 +9,7 @@ import gleam/result
 import gleam/string
 import models/distro
 import models/payment.{type Payment}
+import tempo
 import tempo/date
 import utils/fuzz
 
@@ -27,8 +28,7 @@ pub type Song {
   )
 }
 
-fn encode_growth(payments) {
-  let growth_info = payment.earnings_by_date(payments)
+pub fn encode_growth(growth_info: List(#(tempo.Date, Float))) {
   growth_info
   |> list.map(fn(x) {
     let #(date, total) = x
@@ -39,9 +39,8 @@ fn encode_growth(payments) {
   })
 }
 
-fn encode_distro(payments) {
-  let distro_data = payment.converge_by_distro(payments)
-  distro_data
+fn encode_distro(payments: List(Payment)) {
+  payments
   |> list.map(fn(x) {
     json.object([
       #("distro", x.distro |> distro.encoder),
@@ -51,8 +50,8 @@ fn encode_distro(payments) {
 }
 
 pub fn encoder(s: Song) -> Json {
-  let growth_data = encode_growth(s.payments)
-  let distro_data = encode_distro(s.payments)
+  let growth_data = encode_growth(s.payments |> payment.earnings_by_date)
+  let distro_data = encode_distro(s.payments |> payment.converge_by_distro)
 
   json.object([
     #("title", s.title |> json.string),
