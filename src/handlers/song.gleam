@@ -1,5 +1,6 @@
 import gleam/json
 import gleam/list
+import gleam/option.{None}
 import gleam/result
 import gleam/uri
 import models/overview
@@ -29,13 +30,20 @@ pub fn read_csv(req: wisp.Request) {
     payments
     |> payment.earnings_by_date
 
+  let overview =
+    song.Song(
+      title: "Overview",
+      artist: None,
+      isrc: None,
+      iswc: None,
+      upc: None,
+      payments: payments,
+    )
+
   let json_res =
     json.object([
       #("songs", json.array(songs, fn(s) { s |> song.encoder })),
-      #(
-        "growth",
-        json.array(growth |> overview.encode_from_growth, fn(x) { x }),
-      ),
+      #("overview", overview |> song.encoder),
     ])
     |> json.to_string
 
