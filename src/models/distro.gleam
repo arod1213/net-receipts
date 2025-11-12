@@ -5,7 +5,6 @@ import gleam/list
 import gleam/option.{None, Some}
 import gleam/result
 import gsv
-
 import providers/ascap
 import providers/distrokid
 import providers/globals
@@ -68,7 +67,7 @@ pub fn distro_from_dict(dict) {
   let ascap = #(Ascap, ["Statement Recipient Name", "Party Name"])
   let vydia = #(Vydia, ["Balance Adjustment ID"])
   let distrokid = #(Distrokid, ["Team Percentage", "Song/Album"])
-  let songtrust = #(Songtrust, ["royalty_type", "catalog_number"])
+  let songtrust = #(Songtrust, ["royalty_type", "amount_received"])
   let sound_exchange = #(SoundExchange, ["Royalty Item SXID"])
   let mlc = #(MLC, ["Member MLC Number"])
   let bmi = #(BMI, ["Royalty Amt"])

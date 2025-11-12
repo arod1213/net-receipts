@@ -13,10 +13,6 @@ import tempo
 import tempo/date
 import utils/fuzz
 
-// pub type PaymentHistory(a) {
-//   PaymentHistory(key: a, earnings: Float)
-// }
-
 pub type Song {
   Song(
     title: String,
