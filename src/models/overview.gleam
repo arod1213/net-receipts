@@ -1,5 +1,7 @@
 import gleam/json
 import gleam/list
+import gleam/option
+import gleam/result
 import models/payment.{type Payment}
 import models/payor.{type Payor}
 import tempo
@@ -8,6 +10,7 @@ import tempo/date
 pub type KeyType {
   Payor(Payor)
   Date(tempo.Date)
+  Territory(String)
 }
 
 pub type Overview {
@@ -28,6 +31,12 @@ fn encoder(overview: Overview) {
         #("earnings", overview.earnings |> json.float),
       ])
     }
+    Territory(territory) -> {
+      json.object([
+        #("territory", territory |> json.string),
+        #("earnings", overview.earnings |> json.float),
+      ])
+    }
   }
 }
 
@@ -35,6 +44,17 @@ pub fn encode_from_payments(payments: List(Payment)) {
   payments
   |> list.map(fn(x) {
     Overview(key: Payor(x.payor), earnings: x.earnings) |> encoder
+  })
+}
+
+pub fn encode_from_territory(payments: List(Payment)) {
+  payments
+  |> list.map(fn(x) {
+    Overview(
+      key: Territory(x.territory |> option.unwrap("N/A")),
+      earnings: x.earnings,
+    )
+    |> encoder
   })
 }
 

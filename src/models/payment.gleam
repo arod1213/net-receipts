@@ -3,6 +3,7 @@ import decoders.{decode_one_field, float_decoder}
 import gleam/bool
 import gleam/dict
 import gleam/dynamic/decode
+import gleam/float
 import gleam/int
 import gleam/json.{type Json}
 import gleam/list
@@ -316,4 +317,23 @@ pub fn merge_payments_on_title(songs: List(Payment)) {
     }
   })
   |> dict.values
+}
+
+pub fn converge_by_territory(payments: List(Payment)) {
+  payments
+  |> list.fold(dict.new(), fn(acc, x) {
+    case x.territory {
+      Some(key) -> {
+        let sum = case acc |> dict.get(key) {
+          Ok(s) -> converge(s, x)
+          Error(_) -> x
+        }
+        dict.insert(acc, key, sum)
+      }
+      None -> acc
+    }
+  })
+  |> dict.values
+  |> list.sort(fn(a, b) { float.compare(b.earnings, a.earnings) })
+  |> list.take(5)
 }

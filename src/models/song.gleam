@@ -27,6 +27,8 @@ pub fn encoder(s: Song) -> Json {
     overview.encode_from_growth(s.payments |> payment.earnings_by_date)
   let payor_data =
     overview.encode_from_payments(s.payments |> payment.converge_by_payor)
+  let territory_data =
+    overview.encode_from_territory(s.payments |> payment.converge_by_territory)
 
   json.object([
     #("title", s.title |> json.string),
@@ -37,6 +39,7 @@ pub fn encoder(s: Song) -> Json {
     #("upc", json.nullable(s.upc, json.int)),
     #("growth", json.array(growth_data, fn(x) { x })),
     #("payors", json.array(payor_data, fn(x) { x })),
+    #("territories", json.array(territory_data, fn(x) { x })),
     #(
       "total",
       json.float(s.payments |> list.fold(0.0, fn(acc, x) { x.earnings +. acc })),
