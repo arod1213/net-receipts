@@ -16,6 +16,7 @@ import models/payor.{type Payor}
 import sqlight
 import tempo
 import tempo/date
+import utils/territory
 
 pub type Payment {
   Payment(

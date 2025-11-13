@@ -1,11 +1,12 @@
+import decoders
 import gleam/json
 import gleam/list
 import gleam/option
-import gleam/result
 import models/payment.{type Payment}
 import models/payor.{type Payor}
 import tempo
 import tempo/date
+import utils/territory
 
 pub type KeyType {
   Payor(Payor)
@@ -27,13 +28,16 @@ fn encoder(overview: Overview) {
     }
     Date(date) -> {
       json.object([
-        #("date", date |> date.to_string |> json.string),
+        #("date", date |> decoders.date_to_json),
         #("earnings", overview.earnings |> json.float),
       ])
     }
     Territory(territory) -> {
       json.object([
-        #("territory", territory |> json.string),
+        #(
+          "territory",
+          territory |> territory.territory_code_to_name |> json.string,
+        ),
         #("earnings", overview.earnings |> json.float),
       ])
     }

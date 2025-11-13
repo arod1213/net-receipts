@@ -9,6 +9,7 @@ import gleam/result
 import gleam/string
 import tempo
 import tempo/date
+import tempo/month
 
 pub fn date_decoder() {
   decode.map(decode.string, fn(str) {
@@ -21,8 +22,14 @@ pub fn date_to_string(x) {
   x |> date.format(tempo.ISO8601Date)
 }
 
+pub fn date_to_my(x) {
+  let month = x |> date.get_month |> month.to_short_string
+  let year = x |> date.get_year |> int.to_string
+  month <> " " <> year
+}
+
 pub fn date_to_json(x) {
-  x |> date_to_string |> json.string
+  x |> date_to_my |> json.string
 }
 
 pub fn parse_clean_float(s: String) -> Result(Float, Nil) {
