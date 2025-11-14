@@ -9,6 +9,7 @@ import gleam/result
 import gleam/string
 import models/overview
 import models/payment.{type Payment}
+import services/projections
 import utils/fuzz
 
 pub type Song {
@@ -23,17 +24,22 @@ pub type Song {
 }
 
 pub fn encoder(s: Song) -> Json {
-  let growth_data =
-    overview.encode_from_growth(s.payments |> payment.earnings_by_date)
+  let pay_by_date = s.payments |> payment.earnings_by_date
+  let growth_data = overview.encode_from_growth(pay_by_date)
   let payor_data =
     overview.encode_from_payments(s.payments |> payment.converge_by_payor)
   let territory_data =
     overview.encode_from_territory(s.payments |> payment.converge_by_territory)
 
+  let projection = projections.estimate_royalties(pay_by_date)
+
   json.object([
     #("title", s.title |> json.string),
     #("artist", json.nullable(s.artist, json.string)),
     #("payments", json.array(s.payments, payment.encoder)),
+
+    #("projection", json.nullable(projection, json.float)),
+
     #("isrc", json.nullable(s.isrc, json.string)),
     #("iswc", json.nullable(s.iswc, json.string)),
     #("upc", json.nullable(s.upc, json.int)),

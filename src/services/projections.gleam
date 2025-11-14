@@ -2,22 +2,20 @@ import gleam/bool
 import gleam/int
 import gleam/list
 import gleam/option.{None, Some}
+import gleam/order
 import gleam/result
+import models/payment.{type Payment}
+import tempo
+import tempo/date
+import tempo/datetime
+import tempo/duration
+import tempo/instant
 
-pub type Duration {
-  Monthly
-  BiAnnual
-  Yearly
+fn since(days: Int) {
+  let curr = instant.now() |> instant.as_local_datetime
+  let period = duration.days(days)
+  datetime.subtract(curr, period) |> datetime.get_date
 }
-
-// fn since(d: Duration) {
-//     let curr = tempo.now()
-//     tempo.data_
-
-//     // case d {
-//     //     Monthly -> 
-//     // }
-// }
 
 // ensure limited duration and ascending dates
 // oldest first
@@ -26,19 +24,32 @@ pub type Duration {
 //   todo
 // }
 
-fn mean(val: Float, len: Int) {
-  use <- bool.guard(len == 0, 0.0)
-  let len = len |> int.to_float
-  val /. len
+fn mean(sum: Float, count: Int) {
+  use <- bool.guard(count == 0, 0.0)
+  let len = count |> int.to_float
+  sum /. len
 }
 
-pub fn estimate_royalties(payments: List(Float)) {
-  use <- bool.guard(payments |> list.length < 4, None)
+pub fn estimate_royalties(payments: List(#(tempo.Date, Float))) {
+  let payments =
+    payments
+    |> list.filter(fn(x) {
+      let #(pay_date, _) = x
+      let since = since(180)
+      date.difference(pay_date, since) < 0
+    })
+    |> list.map(fn(x) {
+      let #(_, earnings) = x
+      earnings
+    })
+  use <- bool.guard(payments |> list.length == 0, None)
+
   let avg =
     payments
     |> list.fold(0.0, fn(acc, x) { acc +. x })
     |> mean(payments |> list.length)
 
+  // Some(avg)
   let slope =
     payments
     |> list.window_by_2
@@ -54,6 +65,6 @@ pub fn estimate_royalties(payments: List(Float)) {
 
   case slope {
     Ok(s) -> Some(avg +. s)
-    Error(_) -> None
+    Error(_) -> Some(avg)
   }
 }
