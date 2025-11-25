@@ -2,7 +2,6 @@ import gleam/bool
 import gleam/int
 import gleam/list
 import gleam/option.{None, Some}
-import gleam/order
 import gleam/result
 import models/payment.{type Payment}
 import tempo

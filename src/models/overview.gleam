@@ -5,7 +5,6 @@ import gleam/option
 import models/payment.{type Payment}
 import models/payor.{type Payor}
 import tempo
-import tempo/date
 import utils/territory
 
 pub type KeyType {

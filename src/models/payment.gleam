@@ -1,4 +1,3 @@
-import db
 import decoders.{decode_one_field, float_decoder}
 import gleam/bool
 import gleam/dict
@@ -13,10 +12,8 @@ import gleam/result
 import gleam/string
 import models/header
 import models/payor.{type Payor}
-import sqlight
 import tempo
 import tempo/date
-import utils/territory
 
 pub type Payment {
   Payment(
@@ -31,55 +28,6 @@ pub type Payment {
     date: Option(tempo.Date),
     territory: Option(String),
   )
-}
-
-pub fn insert(conn: sqlight.Connection, p: Payment) {
-  let sql =
-    "insert into payments 
-    (unique_id, earnings, payor, artist, title, isrc, upc, date)
-    values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
-  "
-  let args = [
-    sqlight.text(p.id),
-    sqlight.float(p.earnings),
-    sqlight.text(p.payor |> payor.to_string),
-    sqlight.nullable(sqlight.text, p.artist),
-    sqlight.text(p.title),
-    sqlight.nullable(sqlight.text, p.isrc),
-    sqlight.nullable(sqlight.int, p.upc),
-    sqlight.nullable(
-      fn(date) { date |> decoders.date_to_string |> sqlight.text },
-      p.date,
-    ),
-  ]
-  db.insert(conn, sql, args, decode.success(""))
-}
-
-pub fn decode_sql() -> decode.Decoder(Payment) {
-  // use id <- decode.field(1, decode.int)
-  use id <- decode.field(1, decode.string)
-  // use date <- decode.field(2, decode.optional(decoders.date_decoder))
-  use title <- decode.field(3, decode.string)
-  use artist <- decode.field(4, decode.optional(decode.string))
-  use earnings <- decode.field(5, float_decoder())
-  use payor <- decode.field(6, payor.decoder())
-  use isrc <- decode.field(7, decode.optional(decode.string))
-  use upc <- decode.field(8, decode.optional(decode.int))
-  use iswc <- decode.field(9, decode.optional(decode.string))
-  use territory <- decode.field(10, decode.optional(decode.string))
-
-  decode.success(Payment(
-    id:,
-    isrc:,
-    iswc:,
-    upc:,
-    artist:,
-    earnings:,
-    title:,
-    payor:,
-    territory:,
-    date: None,
-  ))
 }
 
 pub fn decoder() -> decode.Decoder(Payment) {

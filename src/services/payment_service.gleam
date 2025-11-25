@@ -1,5 +1,3 @@
-import db
-import gleam/dynamic/decode
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/order
@@ -9,31 +7,6 @@ import gsv
 import models/payment.{type Payment}
 import models/payor
 import simplifile
-import sqlight
-
-// DB stuff
-pub fn insert_payments(conn: sqlight.Connection, payments: List(Payment)) {
-  let inserts = fn(db_conn) {
-    payments
-    |> list.try_each(fn(x) {
-      case payment.insert(db_conn, x) {
-        Ok(_) -> Ok(Nil)
-        Error(sqlight.SqlightError(sqlight.ConstraintUnique, _, _)) -> Ok(Nil)
-        Error(e) -> Error(e)
-      }
-    })
-  }
-  db.transaction(conn, inserts)
-}
-
-pub fn select_all(conn, title) {
-  let sql =
-    "
-  SELECT * FROM payments WHERE title = ?1;
-  "
-  let title = sqlight.text(title)
-  db.query(conn, sql, [title], payment.decode_sql())
-}
 
 // FILE READ
 pub type ReadError {
@@ -119,10 +92,4 @@ pub fn unique_ids(payments: List(Payment)) {
     }
     #(a, b)
   })
-}
-
-pub fn unique_titles(conn) {
-  let sql = "SELECT title FROM payments GROUP BY title"
-  db.query(conn, sql, [], decode.list(decode.string))
-  |> result.map(fn(a) { a |> list.flatten })
 }

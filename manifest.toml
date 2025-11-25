@@ -4,8 +4,7 @@
 packages = [
   { name = "cors_builder", version = "2.0.6", build_tools = ["gleam"], requirements = ["gleam_http", "gleam_stdlib", "mist", "wisp"], otp_app = "cors_builder", source = "hex", outer_checksum = "DBB16790F8FBF859242812FFC74E2719AC8F8D55F0A4CB5F4A064C87109B6021" },
   { name = "directories", version = "1.2.0", build_tools = ["gleam"], requirements = ["envoy", "gleam_stdlib", "platform", "simplifile"], otp_app = "directories", source = "hex", outer_checksum = "D13090CFCDF6759B87217E8DDD73A75903A700148A82C1D33799F333E249BF9E" },
-  { name = "envoy", version = "1.0.2", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "envoy", source = "hex", outer_checksum = "95FD059345AA982E89A0B6E2A3BF1CF43E17A7048DCD85B5B65D3B9E4E39D359" },
-  { name = "esqlite", version = "0.9.0", build_tools = ["rebar3"], requirements = [], otp_app = "esqlite", source = "hex", outer_checksum = "CCF72258A4EE152EC7AD92AA9A03552EB6CA1B06B65C93AD5B6E55C302E05855" },
+  { name = "envoy", version = "1.1.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "envoy", source = "hex", outer_checksum = "850DA9D29D2E5987735872A2B5C81035146D7FE19EFC486129E44440D03FD832" },
   { name = "exception", version = "2.1.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "exception", source = "hex", outer_checksum = "329D269D5C2A314F7364BD2711372B6F2C58FA6F39981572E5CA68624D291F8C" },
   { name = "filepath", version = "1.1.2", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "filepath", source = "hex", outer_checksum = "B06A9AF0BF10E51401D64B98E4B627F1D2E48C154967DA7AF4D0914780A6D40A" },
   { name = "gleam_crypto", version = "1.5.1", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "gleam_crypto", source = "hex", outer_checksum = "50774BAFFF1144E7872814C566C5D653D83A3EBF23ACC3156B757A1B6819086E" },
@@ -31,7 +30,6 @@ packages = [
   { name = "platform", version = "1.0.0", build_tools = ["gleam"], requirements = [], otp_app = "platform", source = "hex", outer_checksum = "8339420A95AD89AAC0F82F4C3DB8DD401041742D6C3F46132A8739F6AEB75391" },
   { name = "simplifile", version = "2.3.0", build_tools = ["gleam"], requirements = ["filepath", "gleam_stdlib"], otp_app = "simplifile", source = "hex", outer_checksum = "0A868DAC6063D9E983477981839810DC2E553285AB4588B87E3E9C96A7FB4CB4" },
   { name = "splitter", version = "1.1.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "splitter", source = "hex", outer_checksum = "05564A381580395DCDEFF4F88A64B021E8DAFA6540AE99B4623962F52976AA9D" },
-  { name = "sqlight", version = "1.0.3", build_tools = ["gleam"], requirements = ["esqlite", "gleam_stdlib"], otp_app = "sqlight", source = "hex", outer_checksum = "CADD79663C9B61D4BAC960A47CC2D42CA8F48EAF5804DBEB79977287750F4B16" },
   { name = "stdin", version = "2.0.2", build_tools = ["gleam"], requirements = ["gleam_stdlib", "gleam_yielder"], otp_app = "stdin", source = "hex", outer_checksum = "437084939CE094E06D32D07EB19B74473D08895AB817C03550CEDFDBF0DFDC19" },
   { name = "telemetry", version = "1.3.0", build_tools = ["rebar3"], requirements = [], otp_app = "telemetry", source = "hex", outer_checksum = "7015FC8919DBE63764F4B4B87A95B7C0996BD539E0D499BE6EC9D7F3875B79E6" },
   { name = "wisp", version = "2.1.0", build_tools = ["gleam"], requirements = ["directories", "exception", "filepath", "gleam_crypto", "gleam_erlang", "gleam_http", "gleam_json", "gleam_stdlib", "houdini", "logging", "marceau", "mist", "simplifile"], otp_app = "wisp", source = "hex", outer_checksum = "362BDDD11BF48EB38CDE51A73BC7D1B89581B395CA998E3F23F11EC026151C54" },
@@ -39,7 +37,9 @@ packages = [
 
 [requirements]
 cors_builder = { version = ">= 2.0.6 and < 3.0.0" }
+envoy = { version = ">= 1.1.0 and < 2.0.0" }
 gleam_erlang = { version = ">= 1.3.0 and < 2.0.0" }
+gleam_http = { version = ">= 4.3.0 and < 5.0.0" }
 gleam_json = { version = ">= 3.0.2 and < 4.0.0" }
 gleam_stdlib = { version = ">= 0.44.0 and < 2.0.0" }
 gleam_yielder = { version = ">= 1.1.0 and < 2.0.0" }
@@ -48,7 +48,5 @@ gsv = { version = ">= 5.0.0 and < 6.0.0" }
 gtempo = { version = ">= 7.2.2 and < 8.0.0" }
 mist = { version = ">= 5.0.3 and < 6.0.0" }
 simplifile = { version = ">= 2.3.0 and < 3.0.0" }
-sqlight = { version = ">= 1.0.3 and < 2.0.0" }
 stdin = { version = ">= 2.0.2 and < 3.0.0" }
 wisp = { version = ">= 2.1.0 and < 3.0.0" }
-gleam_http = { version = ">= 4.3.0 and < 5.0.0" }
