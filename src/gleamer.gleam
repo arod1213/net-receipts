@@ -17,8 +17,10 @@ pub fn blank(_req) -> wisp.Response {
 
 fn cors() {
   cors.new()
-  |> cors.allow_origin("https://net-receipts-web.vercel.app/")
+  |> cors.allow_origin("https://net-receipts-web.vercel.app")
   |> cors.allow_origin("http://localhost:5173")
+  |> cors.allow_header("Content-Type")
+  |> cors.allow_method(http.Options)
   |> cors.allow_method(http.Get)
   |> cors.allow_method(http.Post)
 }
