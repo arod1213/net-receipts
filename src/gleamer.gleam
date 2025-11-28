@@ -11,10 +11,6 @@ import mist
 import wisp.{type Response}
 import wisp/wisp_mist
 
-pub fn blank(_req) -> wisp.Response {
-  wisp.json_response("welcome to auditor", 200)
-}
-
 fn cors() {
   cors.new()
   |> cors.allow_origin("https://net-receipts-web.vercel.app")
@@ -26,9 +22,10 @@ fn cors() {
 }
 
 pub fn handle_request(req) -> Response {
+  use <- wisp.log_request(req)
   use req <- cors.wisp_middleware(req, cors())
+
   case wisp.path_segments(req) {
-    [] -> blank(req)
     ["read", "payment"] -> payment.read_csv(req)
     ["read", "song"] -> song.read_csv(req)
     ["read", "song", title] -> song.read_csv_song(req, title)
@@ -38,7 +35,6 @@ pub fn handle_request(req) -> Response {
 
 pub fn main() {
   wisp.configure_logger()
-  // let conn = db.establish_conn("test.db")
   let secret_key_base =
     envoy.get("FLY_API_TOKEN") |> result.unwrap("secret_key")
 

@@ -1,3 +1,4 @@
+import gleam/dict
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/order
@@ -7,6 +8,7 @@ import gsv
 import models/payment.{type Payment}
 import models/payor
 import simplifile
+import wisp
 
 // FILE READ
 pub type ReadError {
@@ -44,8 +46,17 @@ pub fn csv_decoder(data, separator: String) {
     |> list.first
     |> result.map_error(fn(_) { MissingHeader }),
   )
-
   let payor = payor.payor_from_dict(header) |> option.unwrap(payor.Unknown)
+
+  case payor {
+    payor.Unknown -> {
+      let header_str =
+        header
+        |> dict.fold("HEADERS:", fn(acc, key, _) { acc <> ", " <> key })
+      wisp.log_info("unknown payor from " <> header_str)
+    }
+    _ -> Nil
+  }
   let headers = payor.headers_from_payor(payor)
 
   Ok(
