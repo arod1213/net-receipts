@@ -18,10 +18,6 @@ pub type ReadError {
   FileTypeError
 }
 
-// fn read_file(path: String) -> Result(String, Nil) {
-
-// }
-
 pub fn file_to_payments(path: String) -> Result(List(Payment), ReadError) {
   use data <- result.try(
     simplifile.read(from: path) |> result.map_error(fn(e) { e |> FileError }),
@@ -52,8 +48,9 @@ pub fn csv_decoder(data, separator: String) {
     payor.Unknown -> {
       let header_str =
         header
-        |> dict.fold("HEADERS:", fn(acc, key, _) { acc <> ", " <> key })
-      wisp.log_info("unknown payor from " <> header_str)
+        |> dict.keys
+        |> string.join(", ")
+      wisp.log_alert("unknown payor from headers: " <> header_str)
     }
     _ -> Nil
   }

@@ -36,8 +36,8 @@ pub fn encoder(s: Song) -> Json {
   json.object([
     #("title", s.title |> json.string),
     #("artist", json.nullable(s.artist, json.string)),
-    #("payments", json.array(s.payments, payment.encoder)),
 
+    // #("payments", json.array(s.payments, payment.encoder)),
     #("projection", json.nullable(projection, json.float)),
 
     #("isrc", json.nullable(s.isrc, json.string)),

@@ -3,7 +3,6 @@ import gleam/int
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/result
-import models/payment.{type Payment}
 import tempo
 import tempo/date
 import tempo/datetime
