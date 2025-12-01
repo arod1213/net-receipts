@@ -10,7 +10,7 @@ Gleamer parses CSV/TSV royalty statements from multiple distributors and music r
 
 Automatically detects and parses statements from:
 
-- **ASCAP** - Performance royalties
+- **ASCAP & BMI** - Performance royalties
 - **Songtrust** - Publishing administration
 - **MLC (Mechanical Licensing Collective)** - Mechanical royalties
 - **Vydia** - Digital distribution

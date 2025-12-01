@@ -6,6 +6,8 @@ import gleam/option.{None, Some}
 import gleam/result
 import gsv
 import providers/ascap
+import providers/bmg
+import providers/bmi
 import providers/distrokid
 import providers/globals
 import providers/mlc
@@ -18,6 +20,7 @@ pub type Payor {
   Vydia
   Ascap
   BMI
+  BMG
   Songtrust
   Distrokid
   SoundExchange
@@ -37,7 +40,7 @@ pub fn income_type(payor) {
   case payor {
     Vydia | Distrokid | SoundExchange | OneRPM -> Some(Master)
     Ascap | BMI -> Some(Performance)
-    Songtrust -> Some(Publishing)
+    Songtrust | BMG -> Some(Publishing)
     MLC -> Some(Mechanical)
     _ -> None
   }
@@ -64,6 +67,7 @@ pub fn decoder() {
       "SoundExchange" -> decode.success(SoundExchange)
       "MLC" -> decode.success(MLC)
       "Unknown" -> decode.success(Unknown)
+      "BMG" -> decode.success(BMG)
       _ -> decode.failure(Unknown, "Invalid field")
     }
   })
@@ -72,6 +76,7 @@ pub fn decoder() {
 pub fn to_string(d: Payor) -> String {
   case d {
     OneRPM -> "OneRPM"
+    BMG -> "BMG"
     Distrokid -> "Distrokid"
     Ascap -> "ASCAP"
     Vydia -> "Vydia"
@@ -114,6 +119,7 @@ pub fn payor_from_dict(dict) {
   let onerpm = #(OneRPM, ["Album/Channel", "Source Account"])
 
   let bmi = #(BMI, ["Royalty Amt"])
+  let bmg = #(BMI, ["Royalty Country Code", "Income Period"])
 
   check_payors(dict, [
     ascap,
@@ -123,6 +129,7 @@ pub fn payor_from_dict(dict) {
     sound_exchange,
     mlc,
     onerpm,
+    bmg,
     bmi,
   ])
 }
@@ -162,7 +169,8 @@ pub fn headers_from_payor(payor) {
     Songtrust -> songtrust.headers()
     MLC -> mlc.headers()
     OneRPM -> onerpm.headers()
-    BMI -> panic as "not implemented"
+    BMG -> bmg.headers()
+    BMI -> bmi.headers()
     _ -> globals.headers()
   }
 }
