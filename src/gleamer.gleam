@@ -2,6 +2,7 @@ import cors_builder as cors
 import envoy
 import gleam/result
 import pog
+import utils/env
 
 import database/request
 import database/setup
@@ -47,10 +48,10 @@ fn db_setup() {
 }
 
 pub fn main() {
-  wisp.configure_logger()
-  let secret_key_base =
-    envoy.get("FLY_API_TOKEN") |> result.unwrap("secret_key")
+  env.load_dotenv()
 
+  wisp.configure_logger()
+  let assert Ok(secret_key_base) = envoy.get("FLY_API_TOKEN")
   let conn = db_setup()
 
   let assert Ok(_) =

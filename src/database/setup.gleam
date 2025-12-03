@@ -4,9 +4,7 @@ import gleam/result
 import pog
 
 pub fn start_application_supervisor(name) {
-  let url =
-    envoy.get("DATABASE_URL")
-    |> result.unwrap("postgresql://aidan@localhost:5432/royalties")
+  let assert Ok(url) = envoy.get("DATABASE_URL")
   let assert Ok(config) = pog.url_config(name, url)
 
   let pool_child =
