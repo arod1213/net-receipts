@@ -50,6 +50,7 @@ pub fn float_decoder() {
 }
 
 pub type CSVError(a) {
+  HashError
   Withdrawal
   NotFound
   DecodeError(a)

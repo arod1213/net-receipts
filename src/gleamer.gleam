@@ -1,7 +1,10 @@
 import cors_builder as cors
 import envoy
 import gleam/result
+import pog
 
+import database/request
+import database/setup
 import gleam/erlang/process
 import gleam/http
 import handlers/payment
@@ -21,11 +24,14 @@ fn cors() {
   |> cors.allow_method(http.Post)
 }
 
-pub fn handle_request(req) -> Response {
+pub fn handle_request(req, db) -> Response {
   use <- wisp.log_request(req)
   use req <- cors.wisp_middleware(req, cors())
 
   case wisp.path_segments(req) {
+    [] -> {
+      payment.save_csv(req, db)
+    }
     ["read", "payment"] -> payment.read_csv(req)
     ["read", "song"] -> song.read_csv(req)
     ["read", "song", title] -> song.read_csv_song(req, title)
@@ -33,13 +39,23 @@ pub fn handle_request(req) -> Response {
   }
 }
 
+fn db_setup() {
+  let p_name = process.new_name("database")
+  let assert Ok(_) = setup.start_application_supervisor(p_name)
+  let conn = pog.named_connection(p_name)
+  let assert Ok(_) = request.migrate(conn)
+  conn
+}
+
 pub fn main() {
   wisp.configure_logger()
   let secret_key_base =
     envoy.get("FLY_API_TOKEN") |> result.unwrap("secret_key")
 
+  let conn = db_setup()
+
   let assert Ok(_) =
-    wisp_mist.handler(handle_request, secret_key_base)
+    wisp_mist.handler(handle_request(_, conn), secret_key_base)
     |> mist.new
     |> mist.bind("0.0.0.0")
     |> mist.port(8080)

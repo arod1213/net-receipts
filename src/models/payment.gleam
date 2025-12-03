@@ -12,11 +12,14 @@ import gleam/result
 import gleam/string
 import models/header
 import models/payor.{type Payor}
+import pog
 import tempo
 import tempo/date
+import utils/hash
 
 pub type Payment {
   Payment(
+    hash: String,
     id: String,
     earnings: Float,
     payor: Payor,
@@ -28,6 +31,28 @@ pub type Payment {
     date: Option(tempo.Date),
     territory: Option(String),
   )
+}
+
+pub fn save(db, payment: Payment) {
+  let query =
+    "
+INSERT INTO payments (
+  unique_id, id, earnings, payor, title, artist, isrc, iswc, territory
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    "
+
+  echo "saving " <> payment.hash as "SAVE HASH"
+  pog.query(query)
+  |> pog.parameter(pog.text(payment.hash))
+  |> pog.parameter(pog.text(payment.id))
+  |> pog.parameter(pog.float(payment.earnings))
+  |> pog.parameter(pog.text(payment.payor |> payor.to_string))
+  |> pog.parameter(pog.text(payment.title))
+  |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.artist))
+  |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.isrc))
+  |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.isrc))
+  |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.territory))
+  |> pog.execute(db)
 }
 
 pub fn decoder() -> decode.Decoder(Payment) {
@@ -42,8 +67,10 @@ pub fn decoder() -> decode.Decoder(Payment) {
   use artist <- decode.field("artist", decode.optional(decode.string))
   use territory <- decode.field("territory", decode.optional(decode.string))
   use earnings <- decode.field("earnings", float_decoder())
+  use hash <- decode.field("hash", decode.string)
 
   decode.success(Payment(
+    hash:,
     id:,
     isrc:,
     iswc:,
@@ -72,6 +99,8 @@ pub fn encoder(p: Payment) -> Json {
 }
 
 pub fn decoder_dict(data, payor, header: header.Header) {
+  let hash = hash.hash_csv(data)
+
   let id =
     data
     |> decode_one_field(header.id, fn(x) { Ok(x) })
@@ -135,6 +164,7 @@ pub fn decoder_dict(data, payor, header: header.Header) {
     |> option.from_result
 
   Ok(Payment(
+    hash:,
     id:,
     iswc:,
     isrc:,
@@ -218,6 +248,7 @@ pub fn converge_list(vals: List(Payment)) {
 
 fn converge(a: Payment, b: Payment) {
   let id = a.id
+  let hash = a.hash
   let title = a.title
   let territory = a.territory
   let earnings = a.earnings +. b.earnings
@@ -244,6 +275,7 @@ fn converge(a: Payment, b: Payment) {
   }
 
   Payment(
+    hash:,
     id:,
     iswc:,
     isrc:,

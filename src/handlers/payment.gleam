@@ -27,3 +27,23 @@ pub fn read_csv(req: wisp.Request) {
     }
   }
 }
+
+pub fn save_csv(req: wisp.Request, db) {
+  use form <- wisp.require_form(req)
+
+  // TODO: save per read to reduce memory
+  let res =
+    form.files
+    |> list.filter_map(fn(x) {
+      let #(_, file) = x
+      payment_service.file_to_payments(file.path)
+    })
+    |> list.flatten
+    |> list.try_each(fn(x) { payment.save(db, x) })
+
+  // TODO get count of new payments
+  case res {
+    Ok(_) -> wisp.accepted()
+    Error(_) -> wisp.bad_request("Failed to save")
+  }
+}
