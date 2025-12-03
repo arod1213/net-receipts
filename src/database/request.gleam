@@ -12,7 +12,9 @@ pub fn migrate(db) {
     artist TEXT,
     isrc TEXT,
     iswc TEXT,
-    territory TEXT
+    upc INTEGER,
+    territory TEXT,
+    date DATE
   )
   "
   pog.query(sql_query)

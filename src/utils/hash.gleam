@@ -15,7 +15,6 @@ pub fn hash_csv(csv: dict.Dict(String, String)) {
     |> string.join("|")
 
   let bits = joined |> bit_array.from_string
-  echo bit_array.is_utf8(bits) as "UTF8 VALID"
 
   crypto.hash(crypto.Sha256, bits)
   |> bit_array.base64_encode(False)

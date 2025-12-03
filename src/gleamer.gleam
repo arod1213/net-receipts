@@ -29,9 +29,8 @@ pub fn handle_request(req, db) -> Response {
   use req <- cors.wisp_middleware(req, cors())
 
   case wisp.path_segments(req) {
-    [] -> {
-      payment.save_csv(req, db)
-    }
+    ["save"] -> payment.save_csv(req, db)
+    ["get", title] -> payment.get_by_title(db, title)
     ["read", "payment"] -> payment.read_csv(req)
     ["read", "song"] -> song.read_csv(req)
     ["read", "song", title] -> song.read_csv_song(req, title)

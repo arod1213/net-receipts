@@ -37,11 +37,10 @@ pub fn save(db, payment: Payment) {
   let query =
     "
 INSERT INTO payments (
-  unique_id, id, earnings, payor, title, artist, isrc, iswc, territory
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+  unique_id, id, earnings, payor, title, artist, isrc, iswc, territory, date
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     "
 
-  echo "saving " <> payment.hash as "SAVE HASH"
   pog.query(query)
   |> pog.parameter(pog.text(payment.hash))
   |> pog.parameter(pog.text(payment.id))
@@ -52,7 +51,40 @@ INSERT INTO payments (
   |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.isrc))
   |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.isrc))
   |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.territory))
+  |> pog.parameter(pog.nullable(
+    fn(x) { pog.calendar_date(x) },
+    payment.date |> option.map(fn(x) { x |> date.to_calendar_date }),
+  ))
   |> pog.execute(db)
+}
+
+pub fn sql_decoder() {
+  use hash <- decode.field(0, decode.string)
+  use id <- decode.field(1, decode.string)
+  use earnings <- decode.field(2, float_decoder())
+  use payor <- decode.field(3, payor.decoder())
+  use title <- decode.field(4, decode.string)
+  use artist <- decode.field(5, decode.optional(decode.string))
+  use isrc <- decode.field(6, decode.optional(decode.string))
+  use iswc <- decode.field(7, decode.optional(decode.string))
+  use upc <- decode.field(8, decode.optional(decode.int))
+  use territory <- decode.field(9, decode.optional(decode.string))
+  use date <- decode.field(10, pog.calendar_date_decoder())
+  let date = date |> date.from_calendar_date |> option.from_result
+
+  decode.success(Payment(
+    hash:,
+    id:,
+    isrc:,
+    iswc:,
+    upc:,
+    artist:,
+    earnings:,
+    title:,
+    payor:,
+    territory:,
+    date:,
+  ))
 }
 
 pub fn decoder() -> decode.Decoder(Payment) {

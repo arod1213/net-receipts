@@ -2,7 +2,21 @@ import gleam/json
 import gleam/list
 import models/payment
 import services/payment_service
+import sql/payment as sql_pay
 import wisp
+
+pub fn get_by_title(db, title) {
+  case sql_pay.get_by_title(db, title) {
+    Ok(p) -> {
+      let res = json.array(p, payment.encoder)
+      wisp.json_response(res |> json.to_string, 200)
+    }
+    Error(e) -> {
+      echo e as "SQL ERROR"
+      wisp.bad_request("No results")
+    }
+  }
+}
 
 pub fn read_csv(req: wisp.Request) {
   use form <- wisp.require_form(req)
