@@ -148,21 +148,40 @@ pub fn decoder_dict(data, payor, header: header.Header) {
   ))
 }
 
-pub fn earnings_by_date(vals: List(Payment)) {
-  vals
-  |> list.fold(dict.new(), fn(acc, x) {
-    case x.date {
-      Some(key) -> {
-        let normalized_date = date.first_of_month(key)
-        let payments = case acc |> dict.get(normalized_date) {
-          Ok(s) -> s +. x.earnings
-          Error(_) -> x.earnings
-        }
-        acc |> dict.insert(normalized_date, payments)
+// reduce multiple iterations to calculate overviews
+pub fn get_details(payments: List(Payment)) {
+  let #(by_date, payor, territory) =
+    payments
+    |> list.fold(#(dict.new(), dict.new(), dict.new()), fn(acc, x) {
+      let #(by_date, payor, territory) = acc
+      let territory = save_territory(territory, x)
+      let by_date = save_date(by_date, x)
+      let payor = save_payor(payor, x)
+      #(by_date, payor, territory)
+    })
+
+  let by_date = by_date |> sort_date
+  let payor = payor |> dict.values
+  let territory = territory |> sort_territory
+  #(by_date, payor, territory)
+}
+
+fn save_date(acc, x: Payment) {
+  case x.date {
+    Some(key) -> {
+      let normalized_date = date.first_of_month(key)
+      let payments = case acc |> dict.get(normalized_date) {
+        Ok(s) -> s +. x.earnings
+        Error(_) -> x.earnings
       }
-      None -> acc
+      acc |> dict.insert(normalized_date, payments)
     }
-  })
+    None -> acc
+  }
+}
+
+fn sort_date(acc) {
+  acc
   |> dict.to_list
   |> list.sort(fn(a, b) {
     let #(a_date, _) = a
@@ -171,16 +190,24 @@ pub fn earnings_by_date(vals: List(Payment)) {
   })
 }
 
+pub fn earnings_by_date(vals: List(Payment)) {
+  vals
+  |> list.fold(dict.new(), fn(acc, x) { save_date(acc, x) })
+  |> sort_date
+}
+
+fn save_payor(acc, x: Payment) {
+  let key = x.payor
+  let payment = case acc |> dict.get(key) {
+    Ok(s) -> converge(s, x)
+    Error(_) -> x
+  }
+  acc |> dict.insert(key, payment)
+}
+
 // payments from same song -> converge by distributor
 pub fn converge_by_payor(vals: List(Payment)) -> List(Payment) {
-  list.fold(vals, dict.new(), fn(acc, x) {
-    let key = x.payor
-    let payment = case acc |> dict.get(key) {
-      Ok(s) -> converge(s, x)
-      Error(_) -> x
-    }
-    acc |> dict.insert(key, payment)
-  })
+  list.fold(vals, dict.new(), fn(acc, x) { save_payor(acc, x) })
   |> dict.values
 }
 
@@ -268,21 +295,30 @@ pub fn merge_payments_on_title(songs: List(Payment)) {
   |> dict.values
 }
 
+fn save_territory(acc, x: Payment) {
+  case x.territory {
+    Some(key) -> {
+      let sum = case acc |> dict.get(key) {
+        Ok(s) -> converge(s, x)
+        Error(_) -> x
+      }
+      dict.insert(acc, key, sum)
+    }
+    None -> acc
+  }
+}
+
+fn sort_territory(acc) {
+  acc
+  |> dict.values
+  |> list.sort(fn(a: Payment, b: Payment) {
+    float.compare(b.earnings, a.earnings)
+  })
+  |> list.take(5)
+}
+
 pub fn converge_by_territory(payments: List(Payment)) {
   payments
-  |> list.fold(dict.new(), fn(acc, x) {
-    case x.territory {
-      Some(key) -> {
-        let sum = case acc |> dict.get(key) {
-          Ok(s) -> converge(s, x)
-          Error(_) -> x
-        }
-        dict.insert(acc, key, sum)
-      }
-      None -> acc
-    }
-  })
-  |> dict.values
-  |> list.sort(fn(a, b) { float.compare(b.earnings, a.earnings) })
-  |> list.take(5)
+  |> list.fold(dict.new(), fn(acc, x) { save_territory(acc, x) })
+  |> sort_territory
 }

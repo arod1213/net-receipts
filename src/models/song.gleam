@@ -24,12 +24,11 @@ pub type Song {
 }
 
 pub fn encoder(s: Song) -> Json {
-  let pay_by_date = s.payments |> payment.earnings_by_date
+  let #(pay_by_date, payor_data, territory_data) =
+    s.payments |> payment.get_details
   let growth_data = overview.encode_from_growth(pay_by_date)
-  let payor_data =
-    overview.encode_from_payments(s.payments |> payment.converge_by_payor)
-  let territory_data =
-    overview.encode_from_territory(s.payments |> payment.converge_by_territory)
+  let payor_data = payor_data |> overview.encode_from_payments
+  let territory_data = territory_data |> overview.encode_from_territory
 
   let projection = projections.estimate_royalties(pay_by_date)
 

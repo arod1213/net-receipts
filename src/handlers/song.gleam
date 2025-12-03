@@ -6,6 +6,7 @@ import gleam/uri
 import models/song
 import services/payment_service
 import utils/fuzz
+import utils/memory
 import wisp
 
 pub fn read_csv(req: wisp.Request) {
@@ -19,11 +20,14 @@ pub fn read_csv(req: wisp.Request) {
     })
     |> list.flatten
 
+  memory.log_memory("AFTER SCAN")
+
   let songs =
     payments
     |> song.songs_from_payments
     |> song.sort_by_earnings
 
+  memory.log_memory("AFTER SONGS")
   let overview =
     song.Song(
       title: "Overview",
@@ -41,13 +45,8 @@ pub fn read_csv(req: wisp.Request) {
     ])
     |> json.to_string
 
+  memory.log_memory("AFTER JSON")
   wisp.json_response(json_res, 200)
-  // case songs |> list.length {
-  //   0 -> wisp.json_response("{'error': 'unsupported data type'}", 401)
-  //   _ -> {
-  //     todo
-  //   }
-  // }
 }
 
 pub fn read_csv_song(req: wisp.Request, title) {
