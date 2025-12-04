@@ -31,6 +31,7 @@ pub fn commit_or_roll(conn, x) {
       pog.execute(commit, conn)
     }
     Error(err) -> {
+      echo err as "SQL ERROR"
       let rollback = pog.query("ROLLBACK")
       use _ <- result.try(pog.execute(rollback, conn))
       Error(err)

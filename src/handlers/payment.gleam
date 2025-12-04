@@ -56,7 +56,7 @@ pub fn save_csv(req: wisp.Request, db) {
       case payment_service.file_to_payments(file.path) {
         Ok(p) -> {
           transaction.start(db)
-          let x = p |> list.try_each(fn(p) { payment.save(db, p) })
+          let x = payment.save_many(db, p)
           transaction.commit_or_roll(db, x) |> result.map_error(fn(_) { Nil })
         }
         Error(e) -> {

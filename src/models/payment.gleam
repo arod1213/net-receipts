@@ -1,3 +1,4 @@
+import database/params
 import decoders.{decode_one_field, float_decoder}
 import gleam/bool
 import gleam/dict
@@ -35,27 +36,52 @@ pub type Payment {
 
 pub fn save(db, payment: Payment) {
   let query =
-    "
-INSERT INTO payments (
-  unique_id, id, earnings, payor, title, artist, isrc, iswc, territory, date
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    "
+    "INSERT INTO payments ( unique_id, id, earnings, payor, title, artist, isrc, iswc, territory, date) VALUES "
+    <> params.row_placeholder(10)
 
-  pog.query(query)
-  |> pog.parameter(pog.text(payment.hash))
-  |> pog.parameter(pog.text(payment.id))
-  |> pog.parameter(pog.float(payment.earnings))
-  |> pog.parameter(pog.text(payment.payor |> payor.to_string))
-  |> pog.parameter(pog.text(payment.title))
-  |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.artist))
-  |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.isrc))
-  |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.isrc))
-  |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.territory))
-  |> pog.parameter(pog.nullable(
-    fn(x) { pog.calendar_date(x) },
-    payment.date |> option.map(fn(x) { x |> date.to_calendar_date }),
-  ))
-  |> pog.execute(db)
+  let x =
+    pog.query(query)
+    |> pog.parameter(pog.text(payment.hash))
+    |> pog.parameter(pog.text(payment.id))
+    |> pog.parameter(pog.float(payment.earnings))
+    |> pog.parameter(pog.text(payment.payor |> payor.to_string))
+    |> pog.parameter(pog.text(payment.title))
+    |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.artist))
+    |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.isrc))
+    |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.iswc))
+    |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.territory))
+    |> pog.parameter(case payment.date {
+      Some(s) -> date.to_calendar_date(s) |> pog.calendar_date
+      None -> pog.null()
+    })
+  x |> pog.execute(db)
+}
+
+pub fn save_many(db, payments: List(Payment)) {
+  let query =
+    "INSERT INTO payments ( unique_id, id, earnings, payor, title, artist, isrc, iswc, territory, date) VALUES "
+    <> params.query_placeholder(payments |> list.length, 10)
+    <> "ON CONFLICT (unique_id) DO NOTHING"
+
+  let query =
+    payments
+    |> list.fold(pog.query(query), fn(acc, payment) {
+      acc
+      |> pog.parameter(pog.text(payment.hash))
+      |> pog.parameter(pog.text(payment.id))
+      |> pog.parameter(pog.float(payment.earnings))
+      |> pog.parameter(pog.text(payment.payor |> payor.to_string))
+      |> pog.parameter(pog.text(payment.title))
+      |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.artist))
+      |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.isrc))
+      |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.iswc))
+      |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.territory))
+      |> pog.parameter(case payment.date {
+        Some(s) -> date.to_calendar_date(s) |> pog.calendar_date
+        None -> pog.null()
+      })
+    })
+  query |> pog.execute(db)
 }
 
 pub fn sql_decoder() {
