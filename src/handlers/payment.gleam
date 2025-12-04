@@ -1,6 +1,7 @@
 import database/transaction
 import gleam/json
 import gleam/list
+import gleam/option.{None}
 import gleam/result
 import models/payment
 import services/payment_service
@@ -8,7 +9,7 @@ import sql/payment as sql_pay
 import wisp
 
 pub fn get_by_title(db, title) {
-  case sql_pay.get_by_title(db, title) {
+  case sql_pay.get_by_title(db, title, None) {
     Ok(p) -> {
       let res = p |> json.array(fn(x) { x |> payment.encoder })
       wisp.json_response(res |> json.to_string, 200)
@@ -55,9 +56,13 @@ pub fn save_csv(req: wisp.Request, db) {
       let #(_, file) = x
       case payment_service.file_to_payments(file.path) {
         Ok(p) -> {
-          transaction.start(db)
-          let x = payment.save_many(db, p)
-          transaction.commit_or_roll(db, x) |> result.map_error(fn(_) { Nil })
+          list.sized_chunk(p, 6000)
+          |> list.try_each(fn(x) {
+            transaction.start(db)
+            let x = payment.save_many(db, x)
+            transaction.commit_or_roll(db, x)
+            |> result.map_error(fn(_) { Nil })
+          })
         }
         Error(e) -> {
           echo e as "sql error: rollback"

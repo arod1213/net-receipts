@@ -1,9 +1,10 @@
+import gleam/dict
 import gleam/json
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/result
 import gleam/uri
-import models/payor
+import http/utils
 import models/song
 import services/payment_service
 import sql/payment as sql_pay
@@ -11,8 +12,14 @@ import utils/fuzz
 import utils/memory
 import wisp
 
-pub fn get_by_title(db, title) {
-  case sql_pay.get_by_title(db, title) {
+pub fn get_by_title(req: wisp.Request, db, title) {
+  let q = case req.query {
+    Some(s) -> s |> utils.query_to_dict
+    None -> dict.new()
+  }
+  let payor = q |> dict.get("payor") |> option.from_result
+
+  case sql_pay.get_by_title(db, title, payor) {
     Ok(p) -> {
       let songs = p |> song.songs_from_payments
       let res = songs |> json.array(fn(x) { x |> song.encoder })

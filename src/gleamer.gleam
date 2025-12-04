@@ -32,7 +32,7 @@ pub fn handle_request(req, db) -> Response {
   case wisp.path_segments(req) {
     ["save"] -> payment.save_csv(req, db)
 
-    ["get", "song", title] -> song.get_by_title(db, title)
+    ["get", "song", title] -> song.get_by_title(req, db, title)
     ["get", "distro", distro] -> song.get_by_distro(db, distro)
     ["get", "payment", title] -> payment.get_by_title(db, title)
 
