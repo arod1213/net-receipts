@@ -34,27 +34,32 @@ pub type Payment {
   )
 }
 
+pub fn into_params(payment: Payment) {
+  [
+    pog.text(payment.hash),
+    pog.text(payment.id),
+    pog.float(payment.earnings),
+    pog.text(payment.payor |> payor.to_string),
+    pog.text(payment.title),
+    pog.nullable(fn(x) { pog.text(x) }, payment.artist),
+    pog.nullable(fn(x) { pog.text(x) }, payment.isrc),
+    pog.nullable(fn(x) { pog.text(x) }, payment.iswc),
+    pog.nullable(fn(x) { pog.text(x) }, payment.territory),
+    case payment.date {
+      Some(s) -> date.to_calendar_date(s) |> pog.calendar_date
+      None -> pog.null()
+    },
+  ]
+}
+
 pub fn save(db, payment: Payment) {
   let query =
     "INSERT INTO payments ( unique_id, id, earnings, payor, title, artist, isrc, iswc, territory, date) VALUES "
     <> params.row_placeholder(10)
 
-  let x =
-    pog.query(query)
-    |> pog.parameter(pog.text(payment.hash))
-    |> pog.parameter(pog.text(payment.id))
-    |> pog.parameter(pog.float(payment.earnings))
-    |> pog.parameter(pog.text(payment.payor |> payor.to_string))
-    |> pog.parameter(pog.text(payment.title))
-    |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.artist))
-    |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.isrc))
-    |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.iswc))
-    |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.territory))
-    |> pog.parameter(case payment.date {
-      Some(s) -> date.to_calendar_date(s) |> pog.calendar_date
-      None -> pog.null()
-    })
-  x |> pog.execute(db)
+  into_params(payment)
+  |> list.fold(pog.query(query), fn(q, x) { q |> pog.parameter(x) })
+  |> pog.execute(db)
 }
 
 pub fn save_many(db, payments: List(Payment)) {
@@ -66,20 +71,8 @@ pub fn save_many(db, payments: List(Payment)) {
   let query =
     payments
     |> list.fold(pog.query(query), fn(acc, payment) {
-      acc
-      |> pog.parameter(pog.text(payment.hash))
-      |> pog.parameter(pog.text(payment.id))
-      |> pog.parameter(pog.float(payment.earnings))
-      |> pog.parameter(pog.text(payment.payor |> payor.to_string))
-      |> pog.parameter(pog.text(payment.title))
-      |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.artist))
-      |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.isrc))
-      |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.iswc))
-      |> pog.parameter(pog.nullable(fn(x) { pog.text(x) }, payment.territory))
-      |> pog.parameter(case payment.date {
-        Some(s) -> date.to_calendar_date(s) |> pog.calendar_date
-        None -> pog.null()
-      })
+      into_params(payment)
+      |> list.fold(acc, fn(q, x) { q |> pog.parameter(x) })
     })
   query |> pog.execute(db)
 }
