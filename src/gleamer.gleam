@@ -31,7 +31,11 @@ pub fn handle_request(req, db) -> Response {
 
   case wisp.path_segments(req) {
     ["save"] -> payment.save_csv(req, db)
-    ["get", title] -> payment.get_by_title(db, title)
+
+    ["get", "payment", title] -> payment.get_by_title(db, title)
+    ["get", "song", title] -> song.get_by_title(db, title)
+    ["get", "distro", distro] -> song.get_by_distro(db, distro)
+
     ["read", "payment"] -> payment.read_csv(req)
     ["read", "song"] -> song.read_csv(req)
     ["read", "song", title] -> song.read_csv_song(req, title)
@@ -49,9 +53,9 @@ fn db_setup() {
 
 pub fn main() {
   env.load_dotenv()
+  let assert Ok(secret_key_base) = envoy.get("FLY_API_TOKEN")
 
   wisp.configure_logger()
-  let assert Ok(secret_key_base) = envoy.get("FLY_API_TOKEN")
   let conn = db_setup()
 
   let assert Ok(_) =

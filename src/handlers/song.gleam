@@ -1,13 +1,44 @@
 import gleam/json
 import gleam/list
-import gleam/option.{None}
+import gleam/option.{None, Some}
 import gleam/result
 import gleam/uri
+import models/payor
 import models/song
 import services/payment_service
+import sql/payment as sql_pay
 import utils/fuzz
 import utils/memory
 import wisp
+
+pub fn get_by_title(db, title) {
+  case sql_pay.get_by_title(db, title) {
+    Ok(p) -> {
+      let songs = p |> song.songs_from_payments
+      let res = songs |> json.array(fn(x) { x |> song.encoder })
+      wisp.json_response(res |> json.to_string, 200)
+    }
+    Error(e) -> {
+      echo e as "SQL ERROR"
+      wisp.bad_request("No results")
+    }
+  }
+}
+
+pub fn get_by_distro(db, distro) {
+  case sql_pay.get_by_distro(db, distro) {
+    Ok(p) -> {
+      echo p |> list.length as "Found"
+      let songs = p |> song.songs_from_payments
+      let res = songs |> json.array(fn(x) { x |> song.encoder_simple })
+      wisp.json_response(res |> json.to_string, 200)
+    }
+    Error(e) -> {
+      echo e as "SQL ERROR"
+      wisp.bad_request("No results")
+    }
+  }
+}
 
 pub fn read_csv(req: wisp.Request) {
   use form <- wisp.require_form(req)

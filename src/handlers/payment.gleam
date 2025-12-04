@@ -8,7 +8,7 @@ import wisp
 pub fn get_by_title(db, title) {
   case sql_pay.get_by_title(db, title) {
     Ok(p) -> {
-      let res = json.array(p, payment.encoder)
+      let res = p |> json.array(fn(x) { x |> payment.encoder })
       wisp.json_response(res |> json.to_string, 200)
     }
     Error(e) -> {

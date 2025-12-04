@@ -57,6 +57,7 @@ pub fn encoder_simple(s: Song) -> Json {
     #("title", s.title |> json.string),
     #("artist", json.nullable(s.artist, json.string)),
     #("isrc", json.nullable(s.isrc, json.string)),
+    #("iswc", json.nullable(s.iswc, json.string)),
     #("upc", json.nullable(s.upc, json.int)),
     #(
       "total",

@@ -55,20 +55,27 @@ fn income_type_to_string(i) {
   }
 }
 
+pub fn from_string(str) {
+  case str {
+    "Vydia" -> Some(Vydia)
+    "OneRPM" -> Some(OneRPM)
+    "Distrokid" -> Some(Distrokid)
+    "BMI" -> Some(BMI)
+    "Songtrust" -> Some(Songtrust)
+    "ASCAP" -> Some(Ascap)
+    "SoundExchange" -> Some(SoundExchange)
+    "MLC" -> Some(MLC)
+    "Unknown" -> Some(Unknown)
+    "BMG" -> Some(BMG)
+    _ -> None
+  }
+}
+
 pub fn decoder() {
   decode.then(decode.string, fn(a) {
-    case a {
-      "Vydia" -> decode.success(Vydia)
-      "OneRPM" -> decode.success(OneRPM)
-      "Distrokid" -> decode.success(Distrokid)
-      "BMI" -> decode.success(BMI)
-      "Songtrust" -> decode.success(Songtrust)
-      "ASCAP" -> decode.success(Ascap)
-      "SoundExchange" -> decode.success(SoundExchange)
-      "MLC" -> decode.success(MLC)
-      "Unknown" -> decode.success(Unknown)
-      "BMG" -> decode.success(BMG)
-      _ -> decode.failure(Unknown, "Invalid field")
+    case a |> from_string {
+      Some(s) -> decode.success(s)
+      None -> decode.failure(Unknown, "Invalid field")
     }
   })
 }
