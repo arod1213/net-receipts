@@ -1,5 +1,7 @@
+import database/transaction
 import gleam/json
 import gleam/list
+import gleam/result
 import models/payment
 import services/payment_service
 import sql/payment as sql_pay
@@ -46,18 +48,29 @@ pub fn save_csv(req: wisp.Request, db) {
   use form <- wisp.require_form(req)
 
   // TODO: save per read to reduce memory
+  // TODO: create batch save method to increase efficiency on save
   let res =
     form.files
     |> list.filter_map(fn(x) {
       let #(_, file) = x
-      payment_service.file_to_payments(file.path)
+      case payment_service.file_to_payments(file.path) {
+        Ok(p) -> {
+          transaction.start(db)
+          let x = p |> list.try_each(fn(p) { payment.save(db, p) })
+          transaction.commit_or_roll(db, x) |> result.map_error(fn(_) { Nil })
+        }
+        Error(e) -> {
+          echo e as "sql error: rollback"
+          Error(Nil)
+        }
+      }
     })
-    |> list.flatten
-    |> list.try_each(fn(x) { payment.save(db, x) })
 
   // TODO get count of new payments
-  case res {
-    Ok(_) -> wisp.accepted()
-    Error(_) -> wisp.bad_request("Failed to save")
+  case res |> list.length {
+    0 -> {
+      wisp.bad_request("Failed to save")
+    }
+    _ -> wisp.accepted()
   }
 }
