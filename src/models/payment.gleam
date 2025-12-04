@@ -69,8 +69,11 @@ pub fn sql_decoder() {
   use iswc <- decode.field(7, decode.optional(decode.string))
   use upc <- decode.field(8, decode.optional(decode.int))
   use territory <- decode.field(9, decode.optional(decode.string))
-  use date <- decode.field(10, pog.calendar_date_decoder())
-  let date = date |> date.from_calendar_date |> option.from_result
+  use date <- decode.field(10, decode.optional(pog.calendar_date_decoder()))
+  let date = case date {
+    Some(s) -> date.from_calendar_date(s) |> option.from_result
+    None -> None
+  }
 
   decode.success(Payment(
     hash:,
