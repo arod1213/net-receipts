@@ -1,7 +1,6 @@
 import gleam/option.{type Option, None, Some}
 import gleam/result
 import models/payment
-import models/payor
 import pog
 
 pub fn get_by_title(db, title, payor: Option(String)) {

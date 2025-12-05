@@ -4,7 +4,7 @@ pub fn migrate(db) {
   let sql_query =
     "
   CREATE TABLE IF NOT EXISTS payments (
-    unique_id TEXT PRIMARY KEY NOT NULL,
+    unique_id BYTEA PRIMARY KEY NOT NULL,
     id TEXT NOT NULL,
     earnings REAL NOT NULL,
     payor TEXT NOT NULL,

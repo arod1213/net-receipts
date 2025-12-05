@@ -1,6 +1,5 @@
 import cors_builder as cors
 import envoy
-import gleam/result
 import pog
 import utils/env
 

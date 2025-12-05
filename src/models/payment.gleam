@@ -20,7 +20,7 @@ import utils/hash
 
 pub type Payment {
   Payment(
-    hash: String,
+    hash: BitArray,
     id: String,
     earnings: Float,
     payor: Payor,
@@ -36,7 +36,7 @@ pub type Payment {
 
 pub fn into_params(payment: Payment) {
   [
-    pog.text(payment.hash),
+    pog.bytea(payment.hash),
     pog.text(payment.id),
     pog.float(payment.earnings),
     pog.text(payment.payor |> payor.to_string),
@@ -78,7 +78,7 @@ pub fn save_many(db, payments: List(Payment)) {
 }
 
 pub fn sql_decoder() {
-  use hash <- decode.field(0, decode.string)
+  use hash <- decode.field(0, decode.bit_array)
   use id <- decode.field(1, decode.string)
   use earnings <- decode.field(2, float_decoder())
   use payor <- decode.field(3, payor.decoder())
@@ -121,7 +121,7 @@ pub fn decoder() -> decode.Decoder(Payment) {
   use artist <- decode.field("artist", decode.optional(decode.string))
   use territory <- decode.field("territory", decode.optional(decode.string))
   use earnings <- decode.field("earnings", float_decoder())
-  use hash <- decode.field("hash", decode.string)
+  use hash <- decode.field("hash", decode.bit_array)
 
   decode.success(Payment(
     hash:,
@@ -154,6 +154,7 @@ pub fn encoder(p: Payment) -> Json {
 
 pub fn decoder_dict(data, payor, header: header.Header) {
   let hash = hash.hash_csv(data)
+  // let hash = ""
 
   let id =
     data

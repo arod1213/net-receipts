@@ -1,6 +1,5 @@
 import envoy
 import gleam/otp/static_supervisor
-import gleam/result
 import pog
 
 pub fn start_application_supervisor(name) {

@@ -1,21 +1,13 @@
 import gleam/bit_array
 import gleam/crypto
 import gleam/dict
-import gleam/list
 import gleam/string
 
 pub fn hash_csv(csv: dict.Dict(String, String)) {
-  let joined =
+  let bits =
     csv
-    |> dict.to_list
-    |> list.map(fn(x) {
-      let #(a, b) = x
-      string.join([a, b], ":")
-    })
-    |> string.join("|")
+    |> dict.fold("", fn(acc, k, v) { acc <> string.join([k, v], ":") })
+    |> bit_array.from_string
 
-  let bits = joined |> bit_array.from_string
-
-  crypto.hash(crypto.Sha256, bits)
-  |> bit_array.base64_encode(False)
+  crypto.hash(crypto.Sha224, bits)
 }
