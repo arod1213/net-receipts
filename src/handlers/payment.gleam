@@ -64,8 +64,7 @@ pub fn save_csv(req: wisp.Request, db) {
             |> result.map_error(fn(_) { Nil })
           })
         }
-        Error(e) -> {
-          echo e as "sql error: rollback"
+        Error(_) -> {
           Error(Nil)
         }
       }

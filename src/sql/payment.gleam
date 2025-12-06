@@ -3,6 +3,16 @@ import gleam/result
 import models/payment
 import pog
 
+pub fn get_by_date(db, date) {
+  let query = "SELECT * FROM payments WHERE date >= $1 ORDER BY date DESC"
+
+  pog.query(query)
+  |> pog.parameter(pog.calendar_date(date))
+  |> pog.returning(payment.sql_decoder())
+  |> pog.execute(db)
+  |> result.map(fn(x) { x.rows })
+}
+
 pub fn get_by_title(db, title, payor: Option(String)) {
   let query = "SELECT * FROM payments WHERE title ILIKE $1 "
 
