@@ -1,3 +1,23 @@
+import gleam/list
+import gleam/string
+
+pub fn standard_case(s) {
+  s
+  |> string.split(" ")
+  |> list.map(fn(x) {
+    x
+    |> string.to_graphemes
+    |> list.index_map(fn(a, i) {
+      case i == 0 {
+        True -> a |> string.uppercase
+        False -> a
+      }
+    })
+    |> string.join("")
+  })
+  |> string.join(" ")
+}
+
 pub fn territory_code_to_name(code: String) {
   case code {
     "US" -> "United States"
@@ -51,6 +71,10 @@ pub fn territory_code_to_name(code: String) {
     "RO" -> "Romania"
     "BG" -> "Bulgaria"
     "AT" -> "Austria"
-    s -> s
+    s ->
+      case s |> string.length > 2 {
+        True -> s |> standard_case
+        False -> s
+      }
   }
 }
