@@ -4,3 +4,6 @@
 erl_crash.dump
 *.db
 *.csv
+*.env
+*.txt
+/*.env

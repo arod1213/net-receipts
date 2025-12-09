@@ -3,14 +3,14 @@ import providers/globals.{global_isrcs, global_iswcs, global_upcs}
 
 pub fn headers() {
   Header(
-    id: ["Work Number"],
-    earnings: ["Royalty Amt"],
-    titles: ["Title"],
+    id: ["TITLE #"],
+    earnings: ["ROYALTY AMOUNT"],
+    titles: ["TITLE NAME"],
     artists: [],
-    dates: [],
+    dates: ["PERF PERIOD"],
     isrcs: global_isrcs,
     iswcs: global_iswcs,
     upcs: global_upcs,
-    territory: [],
+    territory: ["COUNTRY OF PERFORMANCE"],
   )
 }

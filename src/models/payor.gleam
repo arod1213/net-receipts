@@ -118,8 +118,8 @@ pub fn payor_from_dict(dict) {
   // TODO: double check this
   let onerpm = #(OneRPM, ["Album/Channel", "Source Account"])
 
-  let bmi = #(BMI, ["Royalty Amt"])
-  let bmg = #(BMI, ["Royalty Country Code", "Income Period"])
+  let bmi = #(BMI, ["STANDARDS OR TV NET THEME BONUS"])
+  let bmg = #(BMG, ["Royalty Country Code", "Income Period"])
 
   check_payors(dict, [
     ascap,
@@ -163,6 +163,7 @@ fn dict_contains(d, headers) {
 pub fn headers_from_payor(payor) {
   case payor {
     Ascap -> ascap.headers()
+    BMI -> bmi.headers()
     Vydia -> vydia.headers()
     Distrokid -> distrokid.headers()
     SoundExchange -> soundexchange.headers()
@@ -170,7 +171,6 @@ pub fn headers_from_payor(payor) {
     MLC -> mlc.headers()
     OneRPM -> onerpm.headers()
     BMG -> bmg.headers()
-    BMI -> bmi.headers()
     _ -> globals.headers()
   }
 }
