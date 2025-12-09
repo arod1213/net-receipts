@@ -10,7 +10,7 @@ pub fn standard_case(s) {
     |> list.index_map(fn(a, i) {
       case i == 0 {
         True -> a |> string.uppercase
-        False -> a
+        False -> a |> string.lowercase
       }
     })
     |> string.join("")
