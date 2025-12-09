@@ -32,6 +32,7 @@ pub fn handle_request(req, db) -> Response {
     ["save"] -> payment.save_csv(req, db)
 
     ["get", "date", date] -> song.get_by_date(db, date)
+    ["get", "songs"] -> song.get_first(db)
     ["get", "song", title] -> song.get_by_title(req, db, title)
     ["get", "distro", distro] -> song.get_by_distro(db, distro)
     ["get", "payment", title] -> payment.get_by_title(db, title)

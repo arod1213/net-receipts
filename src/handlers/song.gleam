@@ -8,21 +8,32 @@ import http/utils
 import models/song
 import services/payment_service
 import sql/payment as sql_pay
+import sql/song as sql_song
 import tempo/date
 import utils/fuzz
 import wisp
 
+pub fn get_first(db) {
+  case sql_song.get_first(db) {
+    Ok(s) -> {
+      let res = s |> json.array(fn(x) { x |> song.encoder_simple })
+      wisp.json_response(res |> json.to_string, 200)
+    }
+    Error(e) -> {
+      echo e as "ERROR"
+      wisp.bad_request("no songs")
+    }
+  }
+}
+
 pub fn get_by_date(db, date) {
-  // use d <- result.try(
-  //   date |> date.from_string |> result.map(fn(x) { x |> date.to_calendar_date }),
-  // )
   let assert Ok(d) =
     date |> date.from_string |> result.map(fn(x) { x |> date.to_calendar_date })
 
   case sql_pay.get_by_date(db, d) {
     Ok(p) -> {
       let songs = p |> song.songs_from_payments
-      let res = songs |> json.array(fn(x) { x |> song.encoder })
+      let res = songs |> json.array(fn(x) { x |> song.encoder_simple })
       wisp.json_response(res |> json.to_string, 200)
     }
     Error(_) -> wisp.bad_request("No results")

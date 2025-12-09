@@ -1,4 +1,5 @@
 import gleam/dict
+import gleam/dynamic/decode
 import gleam/int
 import gleam/json.{type Json}
 import gleam/list
@@ -21,6 +22,16 @@ pub type Song {
     upc: Option(Int),
     payments: List(Payment),
   )
+}
+
+pub fn sql_decoder() {
+  // use id <- decode.field(0, decode.int)
+  use title <- decode.field(1, decode.string)
+  use artist <- decode.field(2, decode.optional(decode.string))
+  use isrc <- decode.field(3, decode.optional(decode.string))
+  use iswc <- decode.field(4, decode.optional(decode.string))
+  use upc <- decode.field(5, decode.optional(decode.int))
+  decode.success(Song(title:, artist:, isrc:, iswc:, upc:, payments: []))
 }
 
 pub fn encoder(s: Song) -> Json {

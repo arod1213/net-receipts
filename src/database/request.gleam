@@ -1,7 +1,8 @@
+import gleam/result
 import pog
 
 pub fn migrate(db) {
-  let sql_query =
+  use _ <- result.try(
     "
   CREATE TABLE IF NOT EXISTS payments (
     unique_id BYTEA PRIMARY KEY NOT NULL,
@@ -17,6 +18,20 @@ pub fn migrate(db) {
     date DATE
   )
   "
-  pog.query(sql_query)
+    |> pog.query
+    |> pog.execute(db),
+  )
+
+  "
+  CREATE TABLE IF NOT EXISTS songs (
+    id SERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    artist TEXT,
+    isrc TEXT,
+    iswc TEXT,
+    upc INTEGER
+  )
+  "
+  |> pog.query
   |> pog.execute(db)
 }
