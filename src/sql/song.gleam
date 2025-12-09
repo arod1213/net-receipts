@@ -4,7 +4,7 @@ import models/song
 import pog
 
 pub fn get_first(db) {
-  let query = "SELECT * FROM payments LIMIT 1"
+  let query = "SELECT * FROM songs LIMIT 1"
 
   let x =
     pog.query(query)
