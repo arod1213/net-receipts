@@ -79,7 +79,7 @@ pub fn field_any(
 ) {
   let decoders =
     names
-    |> list.map(fn(name) { decode.field(name, decoder, make) })
+    |> list.map(decode.field(_, decoder, make))
   case decoders {
     [] -> panic as "no names provided"
     [first, ..rest] -> decode.one_of(first, or: rest)

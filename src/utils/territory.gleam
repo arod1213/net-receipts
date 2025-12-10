@@ -4,17 +4,7 @@ import gleam/string
 pub fn standard_case(s) {
   s
   |> string.split(" ")
-  |> list.map(fn(x) {
-    x
-    |> string.to_graphemes
-    |> list.index_map(fn(a, i) {
-      case i == 0 {
-        True -> a |> string.uppercase
-        False -> a |> string.lowercase
-      }
-    })
-    |> string.join("")
-  })
+  |> list.map(string.capitalise)
   |> string.join(" ")
 }
 
