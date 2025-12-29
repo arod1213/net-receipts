@@ -37,6 +37,7 @@ pub fn decoder() -> decode.Decoder(Payment) {
   use isrc <- decode.field("isrc", decode.optional(decode.string))
   use iswc <- decode.field("iswc", decode.optional(decode.string))
   use id <- decode.field("unique_id", decode.string)
+  use hash <- decode.field("hash", decode.bit_array)
   use date <- decode.field("date", decoders.date_decoder())
   use payor <- decode.field("payor", payor.decoder())
   use upc <- decode.field("upc", decode.optional(decode.int))
@@ -47,6 +48,7 @@ pub fn decoder() -> decode.Decoder(Payment) {
   use earnings <- decode.field("earnings", float_decoder())
 
   decode.success(Payment(
+    hash:,
     id:,
     isrc:,
     iswc:,
@@ -61,8 +63,9 @@ pub fn decoder() -> decode.Decoder(Payment) {
 }
 
 pub fn encoder(p: Payment) -> Json {
+  let hash = p.hash |> bit_array.base64_encode(True)
   json.object([
-    #("hash", json.string(bit_array.to_string(p.hash) |> result.unwrap(""))),
+    #("hash", json.string(hash)),
     #("isrc", json.nullable(p.isrc, json.string)),
     #("iswc", json.nullable(p.iswc, json.string)),
     #("date", json.nullable(p.date, decoders.date_to_json)),
@@ -225,6 +228,7 @@ pub fn converge_list(vals: List(Payment)) {
 
 fn converge(a: Payment, b: Payment) {
   let id = a.id
+  let hash = a.hash
   let title = a.title
   let territory = a.territory
   let earnings = a.earnings +. b.earnings
@@ -251,6 +255,7 @@ fn converge(a: Payment, b: Payment) {
   }
 
   Payment(
+    hash:,
     id:,
     iswc:,
     isrc:,

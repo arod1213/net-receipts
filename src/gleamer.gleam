@@ -42,7 +42,7 @@ pub fn main() {
     wisp_mist.handler(handle_request, secret_key_base)
     |> mist.new
     |> mist.bind("0.0.0.0")
-    |> mist.port(8080)
+    |> mist.port(8000)
     |> mist.start
 
   process.sleep_forever()
