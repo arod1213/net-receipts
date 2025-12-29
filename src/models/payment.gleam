@@ -1,4 +1,5 @@
 import decoders.{decode_one_field, float_decoder}
+import gleam/bit_array
 import gleam/bool
 import gleam/dict
 import gleam/dynamic/decode
@@ -14,9 +15,11 @@ import models/header
 import models/payor.{type Payor}
 import tempo
 import tempo/date
+import utils/hash
 
 pub type Payment {
   Payment(
+    hash: BitArray,
     id: String,
     earnings: Float,
     payor: Payor,
@@ -59,6 +62,7 @@ pub fn decoder() -> decode.Decoder(Payment) {
 
 pub fn encoder(p: Payment) -> Json {
   json.object([
+    #("hash", json.string(bit_array.to_string(p.hash) |> result.unwrap(""))),
     #("isrc", json.nullable(p.isrc, json.string)),
     #("iswc", json.nullable(p.iswc, json.string)),
     #("date", json.nullable(p.date, decoders.date_to_json)),
@@ -72,6 +76,8 @@ pub fn encoder(p: Payment) -> Json {
 }
 
 pub fn decoder_dict(data, payor, header: header.Header) {
+  let hash = hash.hash_csv(data)
+
   let id =
     data
     |> decode_one_field(header.id, fn(x) { Ok(x) })
@@ -135,6 +141,7 @@ pub fn decoder_dict(data, payor, header: header.Header) {
     |> option.from_result
 
   Ok(Payment(
+    hash:,
     id:,
     iswc:,
     isrc:,
